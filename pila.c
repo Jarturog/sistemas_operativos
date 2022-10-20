@@ -34,9 +34,4 @@ struct my_stack *my_stack_init (int size){
     }
     return -1;
   }
-#include <stdio.h>
-
-struct my_stack *my_stack_init (int size);
-int my_stack_push (struct my_stack *stack, void *data);
-
 
