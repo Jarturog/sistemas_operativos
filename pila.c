@@ -1,5 +1,6 @@
 #include <stdio.h>
 struct my_stack *my_stack_init (int sizee);
+int my_stack_push (struct my_stack *stack, void *data);
 
 int main() {
   struct my_stack *stack = my_stack_init(3);
@@ -23,23 +24,19 @@ struct my_stack *my_stack_init (int size){
   return stack;
   }
   
-  // inacabado
   int my_stack_push (struct my_stack *stack, void *data){
     if(stack && stack->size>0){
       struct my_stack_node *node = malloc(sizeof(struct my_stack_node));
       node->data = data;
-      node->next = 
+      node->next = stack->top;
+      stack->top = node;
+      return 0;
     }
     return -1;
-    }
-/*
-Inserta un nuevo nodo en los elementos de la pila
-(hay que reservar espacio de memoria para él).
-El puntero a los datos de ese nodo (data) nos lo pasan como parámetro.
-El puntero al struct my_stack, que nos lo pasan por parámetro (stack),
-tiene que existir (stack!=NULL) y el tamaño de los datos ha de ser >0
-(stack->size>0), o sea se tiene que haber ejecutado adecuadamente
-my_stack_init()
-Hay que reservar espacio de memoria para el nuevo nodo y enlazarlo
-*/
-adecuadamente por la parte superior.
+  }
+#include <stdio.h>
+
+struct my_stack *my_stack_init (int size);
+int my_stack_push (struct my_stack *stack, void *data);
+
+
