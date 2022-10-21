@@ -1,10 +1,12 @@
+// includes
 #include <stdio.h>
+// declaración de funciones
 struct my_stack *my_stack_init (int sizee);
 int my_stack_push (struct my_stack *stack, void *data);
 void *my_stack_pop (struct my_stack *stack);
 int my_stack_len (struct my_stack *stack);
 int my_stack_purge (struct my_stack *stack);
-
+// uso de la pila para comprobar su funcionamiento en el main
 int main() {
   struct my_stack *stack = my_stack_init(10);
   char *data1 = "hola";
@@ -27,7 +29,7 @@ struct my_stack {   // pila
   int size;       // tamaño del contenido apuntado por data, nos lo pasarán por parámetro
   struct my_stack_node *top;  // apunta al nodo de la parte superior
 };
-
+// inicialización de la pila
 struct my_stack *my_stack_init (int size){
   struct my_stack *stack = malloc(sizeof(struct my_stack));
   stack->size = size;
