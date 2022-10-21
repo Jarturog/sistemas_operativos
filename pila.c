@@ -1,7 +1,7 @@
 // includes
 #include <stdio.h>
 // declaración de funciones
-struct my_stack *my_stack_init (int sizee);
+struct my_stack *my_stack_init (int size);
 int my_stack_push (struct my_stack *stack, void *data);
 void *my_stack_pop (struct my_stack *stack);
 int my_stack_len (struct my_stack *stack);
