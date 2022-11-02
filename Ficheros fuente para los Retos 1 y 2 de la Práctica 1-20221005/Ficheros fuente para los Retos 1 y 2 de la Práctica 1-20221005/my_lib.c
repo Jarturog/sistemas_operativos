@@ -140,5 +140,18 @@ int my_stack_len(struct my_stack *stack){
 };
 
 int my_stack_purge(struct my_stack *stack){
-    return 0;
+    int bytesliberados = 0;
+    /**/
+    while(stack->top){
+        struct my_stack_node *node;
+        node = stack->top;
+        stack->top = node->next;
+        bytesliberados += sizeof(*node);
+        bytesliberados += sizeof(node->data);
+        free(node);
+    }
+    bytesliberados += sizeof(*stack);
+    free(stack);
+
+    return bytesliberados;
 };
