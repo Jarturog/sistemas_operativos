@@ -153,20 +153,37 @@ int my_stack_purge(struct my_stack *stack){
 };
 
 struct my_stack *my_stack_read(char *filename){
-  int size; // tamaño de los datos
+  int size, file, bytesLeidos; 
   // Se abre el fichero
-  int file = open(filename, O_RDONLY);
+  if(!(file = open(filename, O_RDONLY))){
+    return NULL;
+  }
   // Se lee el tamaño de los datos y se inicializa la pila con el tamaño leido
-  read(file, &size, sizeof(int));
-  struct my_stack *stack = my_stack_init(size);
+  if(read(file, &size, sizeof(int))<0){
+    return NULL;
+  }
+  struct my_stack *stack;
+  if(!(stack = my_stack_init(size))){
+    return NULL;
+  }
   // Se van leyendo los datos y haciendo un push hasta acabar el fichero
-  void *data = malloc(size);
-  while (read(file, data, size)){
+  void *data;
+  if(!(data = malloc(size))){
+    return NULL;
+  }
+  while (bytesLeidos = read(file, data, size)){
+    if(bytesLeidos < 0){ // bytesLeidos == -1 si ha habido error
+      return NULL;
+    }
     my_stack_push(stack, data);
-    data = malloc(size);
+    if(!(data = malloc(size))){
+      return NULL;
+    }
   }
   // Se cierra el fichero
-  close(file);
+  if(close(file)){
+    return NULL;
+  }
 
   return stack;
 };
@@ -181,22 +198,34 @@ int my_stack_write(struct my_stack *stack, char *filename){
   
   /*En una pila auxiliar se vuelca la pila original para que al
   leerla este en orden*/
-  struct my_stack *aux_stack = my_stack_init(stack->size);
+  struct my_stack *aux_stack;
+  if(!(aux_stack = my_stack_init(stack->size))){
+    return -1; // si error devuelve -1
+  }
   struct my_stack_node *n = stack->top;
   for (int i = 0; i < my_stack_len(stack); i++){
-    my_stack_push(aux_stack, n->data);
+    if(my_stack_push(aux_stack, n->data)){
+      return -1; // si error devuelve -1
+    }
     n = n->next;
   }
   // Primero se escribe el tamaño que tendran los datos
-  write(file, &stack->size, sizeof(int));
+  if(!write(file, &stack->size, sizeof(int))){
+    return -1;
+  }
   // A continuación se recorre la pila
   int size = 0;
   while (aux_stack->top){
     // Se hace un pop de cada nodo y se escriben los datos en el fichero
-    write(file, my_stack_pop(aux_stack), aux_stack->size);
+    if(!write(file, my_stack_pop(aux_stack), aux_stack->size)){
+      return -1;
+    }
     size++;
   }
   // Se cierra el fichero
-  close(file);
+  if(close(file)){
+    return -1;
+  }
   return size;
 };
+
