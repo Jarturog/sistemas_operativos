@@ -84,96 +84,71 @@ char *my_strchr(const char *s, int c){
 }
 
 
-
 struct my_stack *my_stack_init(int size){
-    //Se crea una pila
-    struct my_stack *s;
-    //Se reserva la memoria pasada por valor
-    s = (struct my_stack *) malloc(sizeof(struct my_stack));
-    //Se assignan el tamaño y el puntero por defecto
-    s->size = size;
-    s->top = NULL;
-    //Se devuelve el puntero
-    return s;
+  if(size < 1){
+    return NULL;
+  } //Se crea una pila y se reserva la memoria pasada por valor
+  struct my_stack *s = malloc(sizeof(struct my_stack));
+  s->size = size; //Se asignan el tamaño y el puntero por defecto
+  s->top = NULL;
+  return s; //Se devuelve el puntero
 };
 
 int my_stack_push(struct my_stack *stack, void *data){
-    int correcto = -1;
-    //Nodo a insertar en la pila
-    struct my_stack_node *node;
-    //Se reserva el espacio necesario
-    node = (struct my_stack_node *) malloc(sizeof(struct my_stack_node));
-    //Si hay espacio
-    if(node){
-        //Se asignan los datos pasados por puntero
-        node->data = data;
-        //Se apunta al nodo que antes estaba encima
-        node->next = stack->top;
-        //El puntero de la pila se redirecciona al nuevo nodo
-        stack->top = node;
-        correcto = 0;
-    }
-
-    return correcto;
+  if(!stack){ // si no hay stack devuelve -1
+    return -1;
+  }
+  struct my_stack_node *node; // si no ha podido reservar espacio devuelve -1
+  if(!(node = malloc(sizeof(struct my_stack_node)))){
+    return -1;
+  }
+  node->data = data; //Se asignan los datos pasados por puntero
+  node->next = stack->top; //Se apunta al nodo que antes estaba encima
+  stack->top = node; //El puntero de la pila se redirecciona al nuevo nodo
+  return 0;
 };
 
 void *my_stack_pop(struct my_stack *stack){
-    //Datos del nodo superior
-    void *data = NULL;
-    //En caso de que haya nodos en la pila se pueden sacar
-    if(stack->top){
-        //Se crea un nodo temporal
-        struct my_stack_node *node;
-        //Se asigna al nodo temporal la direccion del nodo superior de la pila
-        node = stack->top;
-        //Se asignan a datos los datos del nodo superior
-        data = node->data;
-        //Se cambia el valor del puntero de la pila al nodo siguiente
-        stack->top = node->next;
-        //Finalmente se libera el espacio del nodo superior
-        free(node);
-    }
-
-    return data;
+  if(!stack){
+    return NULL;
+  }
+  if(!stack->top){ // faig aquesta comprovació després i no abans
+    return NULL; // perquè si no hagués stack hauria un error
+  }
+  struct my_stack_node *node = stack->top; //Se crea un nodo temporal y se asigna la dirección del nodo superior de la pila
+  void *data = node->data; //Se asignan a datos los datos del nodo superior
+  stack->top = node->next; //Se cambia el valor del puntero de la pila al nodo siguiente
+  free(node); //Finalmente se libera el espacio del nodo superior
+  return data;
 };
 
 int my_stack_len(struct my_stack *stack){
-    //Contador para contar los nodos
-    int counter = 0;
-    //Si la pila no esta vacia se cuentan los nodos, si no se devuelve 0 directamente
-    if (stack->top){
-        //Creamos un nodo temporal
-        struct my_stack_node *node;
-        //Le asignamos la direccion del nodo superior de la pila
-        node = stack->top;
-        //Mientras siga habiendo nodos se seguira recorriendo la pila
-        while(node){
-            //Se aumenta en uno el contador
-            counter++;
-            //Se avanza al siguiente nodo
-            node = node->next;
-        }
-        //Se libera el espacio del nodo temporal
-        free(node);
-    }
-
-    return counter;
+  if(!stack){
+    return -1;
+  }
+  struct my_stack_node *node; // nodo temporal
+  if (!(node = stack->top)){ //Si la pila está vacía la longitud es 0
+    return 0;
+  }
+  int counter = 0;
+  while(node){ // mientras no sea NULL
+    counter++;
+    node = node->next;
+  }
+  return counter;
 };
 
 int my_stack_purge(struct my_stack *stack){
     int bytesliberados = 0;
-    /**/
-    while(stack->top){
-        struct my_stack_node *node;
-        node = stack->top;
-        stack->top = node->next;
+    while(stack->top){ // mientras queden nodos
+        struct my_stack_node *node = stack->top;
+        stack->top = node->next; // ahora el top es el siguiente
         bytesliberados += sizeof(*node);
-        bytesliberados += stack->size;
-        free(node);
+        bytesliberados += sizeof(node->data);
+        free(node); // se purga el nodo
     }
     bytesliberados += sizeof(*stack);
-    free(stack);
-
+    free(stack); // se purga lo que queda de pila
     return bytesliberados;
 };
 
