@@ -68,37 +68,32 @@ void *my_stack_pop(struct my_stack *stack){
   return data;
 };
 
-int my_stack_len (struct my_stack *stack){
+int my_stack_len(struct my_stack *stack){
   if(!stack){
     return -1;
   }
-  int nodes = 0;
-  struct my_stack_node *temp = stack->top;
-  while(temp){
-    nodes++;
-    temp = temp->next;
+  struct my_stack_node *node;
+  if (!(node = stack->top)){
+    return 0;
   }
-  return nodes;
-}
+  int counter = 0;
+  while(node){
+    counter++;
+    node = node->next;
+  }
+  return counter;
+};
 
-int my_stack_purge (struct my_stack *stack){
-  if(!stack){
-    return -1;
-  }
-  int bytes = 0;
-  struct my_stack_node *temp1 = stack->top;
-  struct my_stack_node *temp2 = temp1;
-  while(temp1){
-    temp1 = temp1->next;
-    bytes += sizeof(temp2->data);
-    free(temp2->data);
-    bytes += sizeof(temp2);
-    free(temp2);
-    temp2 = temp1;
-  }
-  bytes += sizeof(stack->size);
-  free(stack->size);
-  bytes += sizeof(stack);
-  free(stack);
-  return 0;
-}
+int my_stack_purge(struct my_stack *stack){
+    int bytesliberados = 0;
+    while(stack->top){
+        struct my_stack_node *node = stack->top;
+        stack->top = node->next;
+        bytesliberados += sizeof(*node);
+        bytesliberados += sizeof(node->data);
+        free(node);
+    }
+    bytesliberados += sizeof(*stack);
+    free(stack);
+    return bytesliberados;
+};
