@@ -77,7 +77,6 @@ struct my_stack *my_stack_init(int size){
 };
 
 int my_stack_push(struct my_stack *stack, void *data){
-    int correcto = -1;
     //Nodo a insertar en la pila
     struct my_stack_node *node;
     //Se reserva el espacio necesario
@@ -90,10 +89,9 @@ int my_stack_push(struct my_stack *stack, void *data){
         node->next = stack->top;
         //El puntero de la pila se redirecciona al nuevo nodo
         stack->top = node;
-        correcto = 0;
+        return 0;
     }
-
-    return correcto;
+    return -1;
 };
 
 void *my_stack_pop(struct my_stack *stack){
