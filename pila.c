@@ -54,16 +54,19 @@ int my_stack_push(struct my_stack *stack, void *data){
   return 0;
 };
   
-void *my_stack_pop (struct my_stack *stack){
+void *my_stack_pop(struct my_stack *stack){
   if(!stack){
-    return -1;
+    return NULL;
   }
-  struct my_stack_node *temp = stack->top;
-  stack->top = temp->next;
-  void *p = temp->data;
-  free(temp);
-  return p;
-}
+  if(!stack->top){ // faig aquesta comprovació després i no abans
+    return NULL; // perquè si no hagués stack hauria un error
+  }
+  struct my_stack_node *node = stack->top;
+  void *data = node->data;
+  stack->top = node->next;
+  free(node);
+  return data;
+};
 
 int my_stack_len (struct my_stack *stack){
   if(!stack){
