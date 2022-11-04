@@ -1,3 +1,4 @@
+// código hecho por Juan Arturo Abaurrea Calafell, Pere Antoni Prats Villalonga y Marta González Juan
 #include "my_lib.h"
 
 size_t my_strlen(const char *str){
