@@ -30,23 +30,29 @@ struct my_stack {   // pila
   struct my_stack_node *top;  // apunta al nodo de la parte superior
 };
 // inicialización de la pila
-struct my_stack *my_stack_init (int size){
-  struct my_stack *stack = malloc(sizeof(struct my_stack));
-  stack->size = size;
-  stack->top = NULL;
-  return stack;
-}
+struct my_stack *my_stack_init(int size){
+  if(size < 1){
+    return NULL;
+  }
+  struct my_stack *s = malloc(sizeof(struct my_stack));
+  s->size = size;
+  s->top = NULL;
+  return s;
+};
   
-int my_stack_push (struct my_stack *stack, void *data){
-  if(!(stack && stack->size>0)){
+int my_stack_push(struct my_stack *stack, void *data){
+  if(!stack){ // si no hi ha stack retorna -1
     return -1;
   }
-  struct my_stack_node *node = malloc(sizeof(struct my_stack_node));
+  struct my_stack_node *node; // si no ha pogut reservar espai retorna -1
+  if(!(node = malloc(sizeof(struct my_stack_node)))){
+    return -1;
+  }
   node->data = data;
   node->next = stack->top;
   stack->top = node;
   return 0;
-}
+};
   
 void *my_stack_pop (struct my_stack *stack){
   if(!stack){
