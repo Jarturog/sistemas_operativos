@@ -155,3 +155,59 @@ int my_stack_purge(struct my_stack *stack){
 
     return bytesliberados;
 };
+
+struct my_stack *my_stack_read(char *filename){
+    int file, size;
+    char *data;
+    struct my_stack *stack;
+
+    //Se abre el fichero
+    file = open(filename, O_RDONLY);
+    //Se lee el tamaño de los datos y se inicializa la pila con el tamaño leido
+    read(file, &size, sizeof(int));
+    stack = my_stack_init(size);
+    data = malloc(size);
+    //Se van leyendo los datos y haciendo un push hasta acabar el fichero
+    while((read(file, data, size)) != 0){
+        data = malloc(size);
+        my_stack_push(stack, data);
+    }
+    //Se cierra el fichero
+    close(file);
+
+    return stack;
+};
+
+int my_stack_write(struct my_stack *stack, char *filename){
+    int ssize = 0;
+    int file;
+    struct my_stack *aux_stack;
+    struct my_stack_node *n;
+    /*En una pila auxiliar se vuelca la pila original para que al
+    leerla este en orden*/
+    aux_stack = my_stack_init(stack->size);
+    n = stack->top;
+    for (int i = 0; i < my_stack_len(stack); i++){
+        my_stack_push(aux_stack, n->data);
+        n = n->next;
+    }
+
+    /*Abrimos el fichero, en caso de que el fichero no se pueda abrir retorna -1,
+    en caso contrari escribe los datos del fichero en la pila*/
+    if((file = open(filename, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR | S_IWUSR)) == -1){
+        ssize = -1;
+    }else{
+        //Primero se escribe el tamaño que tendran los datos
+        write(file, &stack->size, sizeof(int));
+        //A continuación se recorre la pila
+        while(aux_stack->top != NULL){
+            //Se hace un pop de cada nodo y se escriben los datos en el fichero
+            write(file, my_stack_pop(aux_stack), stack->size);
+            ssize++;
+        }
+        //Se cierra el fichero
+        close(file);
+    }
+    
+    return ssize;
+};
