@@ -35,6 +35,7 @@ int main()
 
 char *read_line(char *line){
     printf(imprimir_prompt());
+    fflush(stdout); // ni idea de lo que hace exactamente esto pero la profe lo puso
     if(fgets(line, COMMAND_LINE_SIZE, stdin)){
         line[COMMAND_LINE_SIZE-1] = '\0';
         return line;
