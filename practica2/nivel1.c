@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <colores.h>
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define DEBUGN1 0
+#define PROMPT '$'
 // declaraciones de funciones
 char *read_line(char *line);
 int execute_line(char *line);
@@ -31,7 +33,24 @@ int main()
     return 0;
 }
 
-char *read_line(char *line);
+char *read_line(char *line){
+    printf(imprimir_prompt());
+    if(fgets(line, COMMAND_LINE_SIZE, stdin)){
+        line[COMMAND_LINE_SIZE-1] = '\0';
+        return line;
+    }
+    if(feof(stdin)){ // CTRL+D
+        printf("\radiós");
+        exit(0);
+    }
+    return NULL;
+}
+char *imprimir_prompt(){
+    char *s1 = getenv("USER");
+    char *s2;
+    getcwd(s2, COMMAND_LINE_SIZE);
+    return ("%s %s %c ",s1,s2,PROMPT);
+}
 int execute_line(char *line)
 {
     char **tokens;
@@ -45,7 +64,7 @@ int check_internal(char **args)
 {
     if (strcmp(args[0], "exit"))
     {
-        exit();
+        exit(0);
         return 1;
     }
     else if (strcmp(args[0], "cd"))
