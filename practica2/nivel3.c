@@ -8,7 +8,8 @@
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define DEBUGN1 -1
-#define DEBUGN2 0
+#define DEBUGN2 -1
+#define DEBUGN3 0
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
@@ -274,11 +275,24 @@ int internal_export(char **args)
 }
 int internal_source(char **args)
 {
-    if (DEBUGN1)
+    /**
+     * Comentario de Arturo: en el nivel 1 la profe pone que internal_source
+     * hará algo de este estilo, lo pongo aquí por si es de ayuda
+    */
+    char line[COMMAND_LINE_SIZE];
+    FILE *file;
+
+    if (!args[1])
     {
-        fprintf(stderr, GRIS_T "[internal_source()→Esta función ejecutará un fichero de líneas de comandos]\n" RESET);
+        fprintf(stderr, ROJO_T "Error de sintaxis. Uso: source <nombre_fichero>\n" RESET);
+        return -1;
     }
-    return 1;
+    if (!(file = fopen(args[1], "r")))
+    {
+        perror(ROJO_T "fopen");
+        return -1;
+    }
+
 }
 int internal_jobs(char **args)
 {
@@ -304,3 +318,4 @@ int internal_bg(char **args)
     }
     return 1;
 }
+
