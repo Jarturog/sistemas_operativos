@@ -91,34 +91,36 @@ int execute_line(char *line)
     // fragmenta line en tokens
     parse_args(tokens, line);
     // comprueba si es un comando interno
-    check_internal(tokens);
-    //Si no es un comando interno se crea un hilo para ejecutar el comando
-    pid_t pid = fork();
-    int status;
-    if (DEBUGN3)
+    if(!check_internal(tokens))
     {
-        fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
-        fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, pid, jobs_list[0].cmd);
-    }
-    if (pid == 0) //Proceso hijo
-    {
-        execvp(tokens[0], tokens);
-        perror("no se encontro la orden");
-        exit(FAILURE);
-    }
-    else if (pid > 0) //Proceso padre
-    {
-        update_JobList(0, pid, 'E', line);
-        wait(&status);
-        reset_JobList();
-    }
-    else //Error
-    {
+        //Si no es un comando interno se crea un hilo para ejecutar el comando
+        pid_t pid = fork();
+        int status;
+        if (DEBUGN3)
+        {
+            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
+            fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, pid, jobs_list[0].cmd);
+        }
+        if (pid == 0) //Proceso hijo
+        {
+            execvp(tokens[0], tokens);
+            perror("no se encontro la orden");
+            exit(FAILURE);
+        }
+        else if (pid > 0) //Proceso padre
+        {
+            update_JobList(0, pid, 'E', line);
+            wait(&status);
+            reset_JobList();
+        }
+        else //Error
+        {
 
-    }   
-    if (DEBUGN3)
-    {
-        fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), estado: %d]\n" RESET, pid, line, status);
+        }   
+        if (DEBUGN3)
+        {
+            fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), estado: %d]\n" RESET, pid, line, status);
+        }
     }
 }
 
