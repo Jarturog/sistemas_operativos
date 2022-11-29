@@ -4,20 +4,52 @@
 #include <stdlib.h>
 #include <string.h>
 #include <colores.h>
+#include <sys/wait.h>
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
+#define N_JOBS 64
 #define DEBUGN1 -1
 #define DEBUGN2 -1
 #define DEBUGN3 0
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
+static char mi_shell[COMMAND_LINE_SIZE];
+
+//Lista de tareas
+struct info_job {
+   pid_t pid;
+   char status; // ‘N’, ’E’, ‘D’, ‘F’ (‘N’: ninguno, ‘E’: Ejecutándose y ‘D’: Detenido, ‘F’: Finalizado) 
+   char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
+};
+
+static struct info_job jobs_list [N_JOBS];
+
+//Funcion para inicializar jobs_List
+void reset_JobList(){
+    jobs_list[0].pid = 0;
+    jobs_list[0].status = 'N';
+    memset(jobs_list->cmd, '\0', COMMAND_LINE_SIZE);
+}
+
+void update_JobList(int idx, pid_t pid, char status, char cmd[]){
+    jobs_list[idx].pid = pid;
+    jobs_list[idx].status = status;
+    strcpy(jobs_list[idx].cmd, cmd);
+}
+
+
 // declaraciones de funciones
 
-int main()
+int main(char *argv[])
 {
+    //Se inicializa la linia de comandos, el job_List y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
+    reset_JobList();
+    strcpy(mi_shell, argv[0]);
+
+    //Se inicia el bucle para leer los comandos
     while (1)
     {
         if (read_line(line))
@@ -45,12 +77,14 @@ char *read_line(char *line)
     }
     return NULL;
 }
+
 char *imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
     getcwd(cwd, COMMAND_LINE_SIZE);
     return ("%s %s %c ", getenv("USER"), cwd, PROMPT);
 }
+
 int execute_line(char *line)
 {
     char **tokens;
@@ -58,7 +92,36 @@ int execute_line(char *line)
     parse_args(tokens, line);
     // comprueba si es un comando interno
     check_internal(tokens);
+    //Si no es un comando interno se crea un hilo para ejecutar el comando
+    pid_t pid = fork();
+    int status;
+    if (DEBUGN3)
+    {
+        fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
+        fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, pid, jobs_list[0].cmd);
+    }
+    if (pid == 0) //Proceso hijo
+    {
+        execvp(tokens[0], tokens);
+        perror("no se encontro la orden");
+        exit(FAILURE);
+    }
+    else if (pid > 0) //Proceso padre
+    {
+        update_JobList(0, pid, 'E', line);
+        wait(&status);
+        reset_JobList();
+    }
+    else //Error
+    {
+
+    }   
+    if (DEBUGN3)
+    {
+        fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), estado: %d]\n" RESET, pid, line, status);
+    }
 }
+
 int parse_args(char **args, char *line)
 {
     char *args[ARGS_SIZE];
@@ -105,6 +168,7 @@ int parse_args(char **args, char *line)
     args[ARGS_SIZE - 1] = NULL; // el último token siempre ha de ser NULL
     return i;
 }
+
 int check_internal(char **args)
 {
     if (strcmp(args[0], "exit"))
@@ -144,6 +208,7 @@ int check_internal(char **args)
     }
     return 0;
 }
+
 int internal_cd(char **args)
 {
     char cwd[COMMAND_LINE_SIZE]; // actual directory
@@ -241,6 +306,7 @@ int internal_cd(char **args)
     }
     return SUCCESS;
 }
+
 int internal_export(char **args)
 {
     char *nombre;
@@ -273,27 +339,43 @@ int internal_export(char **args)
     }
     return SUCCESS;
 }
+
 int internal_source(char **args)
 {
-    /**
-     * Comentario de Arturo: en el nivel 1 la profe pone que internal_source
-     * hará algo de este estilo, lo pongo aquí por si es de ayuda
-    */
     char line[COMMAND_LINE_SIZE];
     FILE *file;
 
     if (!args[1])
     {
         fprintf(stderr, ROJO_T "Error de sintaxis. Uso: source <nombre_fichero>\n" RESET);
-        return -1;
+        return FAILURE;
     }
     if (!(file = fopen(args[1], "r")))
     {
         perror(ROJO_T "fopen");
-        return -1;
+        return FAILURE;
     }
+    else
+    {
+        fflush(file);
+        while (fgets(line, COMMAND_LINE_SIZE, file))
+        {
+            line[strlen(line)-1] = '\0';
 
+            if (DEBUGN3)
+            {
+                fprintf(stderr, GRIS_T "[Internal_source()→ LINE: %s]\n" RESET, line);
+            }
+
+            execute_line(line);
+            fflush(file);
+        }
+
+        fclose(file);     
+    }
+    return SUCCESS;   
 }
+
 int internal_jobs(char **args)
 {
     if (DEBUGN1)
@@ -302,6 +384,7 @@ int internal_jobs(char **args)
     }
     return 1;
 }
+
 int internal_fg(char **args)
 {
     if (DEBUGN1)
@@ -310,12 +393,5 @@ int internal_fg(char **args)
     }
     return 1;
 }
-int internal_bg(char **args)
-{
-    if (DEBUGN1)
-    {
-        fprintf(stderr, GRIS_T "[internal_bg()→Esta función reactivará un proceso detenido para que siga ejecutándose pero en segundo plano.]\n" RESET);
-    }
-    return 1;
-}
 
+int internal_bg(char **args)
