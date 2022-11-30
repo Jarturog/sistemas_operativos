@@ -27,13 +27,13 @@ struct info_job {
 static struct info_job jobs_list [N_JOBS];
 
 //Funcion para inicializar jobs_List
-void reset_JobList(){
-    jobs_list[0].pid = 0;
-    jobs_list[0].status = 'N';
-    memset(jobs_list->cmd, '\0', COMMAND_LINE_SIZE);
+void jobs_list_reset(int idx){
+    jobs_list[idx].pid = 0;
+    jobs_list[idx].status = 'N';
+    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
 }
 
-void update_JobList(int idx, pid_t pid, char status, char cmd[]){
+void jobs_list_update(int idx, pid_t pid, char status, char cmd[]){
     jobs_list[idx].pid = pid;
     jobs_list[idx].status = status;
     strcpy(jobs_list[idx].cmd, cmd);
@@ -46,7 +46,7 @@ int main(char *argv[])
 {
     //Se inicializa la linia de comandos, el job_List y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
-    reset_JobList();
+    jobs_list_reset(0);
     strcpy(mi_shell, argv[0]);
 
     //Se inicia el bucle para leer los comandos
@@ -104,14 +104,14 @@ int execute_line(char *line)
         if (pid == 0) //Proceso hijo
         {
             execvp(tokens[0], tokens);
-            perror("no se encontro la orden");
+            perror("No se encontro la orden");
             exit(FAILURE);
         }
         else if (pid > 0) //Proceso padre
         {
-            update_JobList(0, pid, 'E', line);
+            jobs_list_update(0, pid, 'E', line);
             wait(&status);
-            reset_JobList();
+            jobs_list_reset(0);
         }
         else //Error
         {
