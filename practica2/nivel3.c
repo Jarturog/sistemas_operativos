@@ -74,7 +74,7 @@ int main(char *argv[])
 
 char *read_line(char *line)
 {
-    printf(imprimir_prompt());
+    imprimir_prompt();
     fflush(stdout);
     if (fgets(line, COMMAND_LINE_SIZE, stdin))
     {
@@ -89,11 +89,12 @@ char *read_line(char *line)
     return NULL;
 }
 
-char *imprimir_prompt()
+void imprimir_prompt()
 {
+
     char cwd[COMMAND_LINE_SIZE];
     getcwd(cwd, COMMAND_LINE_SIZE);
-    return ("%s %s %c ", getenv("USER"), cwd, PROMPT);
+    printf("%s %s %c",getenv("USER"),cwd, PROMPT);
 }
 
 int execute_line(char *line)
