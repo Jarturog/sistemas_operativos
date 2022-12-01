@@ -3,7 +3,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <colores.h>
+#include "colores.h"
 #include <sys/wait.h>
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
@@ -53,12 +53,13 @@ int internal_jobs(char **args);
 int internal_fg(char **args);
 int internal_bg(char **args);
 
-int main(char *argv[])
+//int count,char *argv[]
+int main()
 {
     //Se inicializa la linia de comandos, el job_List y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
     jobs_list_reset(0);
-    strcpy(mi_shell, argv[0]);
+    //strcpy(mi_shell, argv[0]);
 
     //Se inicia el bucle para leer los comandos
     while (1)
@@ -138,7 +139,7 @@ int execute_line(char *line)
 
 int parse_args(char **args, char *line)
 {
-    char *args[ARGS_SIZE];
+   // char *args[ARGS_SIZE];
     const char delim[4] = "\t\n\r"; // delimitadores
     int i = 0;                      // índice
     // primer token
@@ -407,5 +408,6 @@ int internal_fg(char **args)
     }
     return 1;
 }
-
-int internal_bg(char **args)
+int internal_bg(char **args){
+  return 1;
+}
