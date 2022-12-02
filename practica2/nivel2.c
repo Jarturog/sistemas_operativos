@@ -211,7 +211,7 @@ int internal_cd(char **args)
             break;
         }
     }
-    printf("antes " ",' ',\);
+    printf("antes espacios");
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
     char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
     int i = 1;                                     // índice del argumento que se está comprobando
