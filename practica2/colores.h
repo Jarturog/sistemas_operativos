@@ -10,3 +10,4 @@
 #define CYAN_T "\x1b[36m"
 #define BLANCO_T "\x1b[97m"
 #define NEGRITA "\x1b[1m"
+#define MORADO_T "\x1b[141m"
