@@ -246,17 +246,15 @@ int internal_cd(char **args)
 }
 int internal_export(char **args)
 {
-    char *nombre;
-    char valor[COMMAND_LINE_SIZE];
-    nombre = strtok(args[1], "=");
-    for(int i = strlen(nombre)+1, j = 0; args[1][i]!='\0';i++,j++){
-        valor[j] = args[1][i];
+    char *nombre = strtok(args[1], "=");
+    while(args[1][i]=='='){
+        args[1]++;
     }
     if (DEBUGN2)
     {
         fprintf(stderr, GRIS_T "[internal_export()→ nombre: %s]\n[internal_export()→ valor: %s]\n" RESET, nombre, getenv(nombre));
     }
-    if ((nombre == NULL) || (valor == NULL) || (nombre[0] == '\0') || (valor[0] == '\0'))
+    if ((nombre == NULL) || (args[1] == NULL) || (nombre[0] == '\0') || (args[1][0] == '\0'))
     {
         fprintf(stderr, ROJO_T "Error de sintaxis. Uso: export Nombre=Valor\n" RESET);
         return FAILURE;
@@ -266,7 +264,7 @@ int internal_export(char **args)
         perror("getenv() error");
         return FAILURE;
     }
-    if(setenv(nombre,valor,1)){
+    if(setenv(nombre,args[1],1)){
         perror("setenv() error");
         return FAILURE;
     }
