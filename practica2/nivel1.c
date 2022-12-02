@@ -28,7 +28,8 @@ int main()
     {
         if (read_line(line))
         {
-            execute_line(line);
+            printf("aquí llega bien");
+            //execute_line(line);
         }
     }
 
