@@ -7,7 +7,7 @@
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define DEBUGN1 -1
-#define PROMPT "$"
+#define PROMPT '$'
 // declaraciones de funciones
 char *read_line(char *line);
 void imprimir_prompt();
@@ -54,7 +54,7 @@ void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
     getcwd(cwd, COMMAND_LINE_SIZE);
-    printf(MAGENTA_T "%s" RESET ":" CYAN_T "~%s " VERDE_T "%s " RESET, getenv("USER"), cwd, PROMPT);
+    printf(MAGENTA_T "%s" RESET ":" CYAN_T "~%s " VERDE_T "%c " RESET, getenv("USER"), cwd, PROMPT);
     fflush(stdout);
 }
 int execute_line(char *line)
