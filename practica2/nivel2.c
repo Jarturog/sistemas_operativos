@@ -185,7 +185,6 @@ int internal_cd(char **args)
         perror("getcwd() error");
         return FAILURE;
     }
-    printf("antes ..");
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] == '.') // si hay ..
     {
@@ -194,21 +193,26 @@ int internal_cd(char **args)
             perror("internal_cd() error, access denied into a folder above HOME");
             return FAILURE;
         }
+        printf("\n%s",cwd);
         cwd[strlen(cwd) - 1] = '\0';        // elimino la barra
         while (cwd[strlen(cwd) - 1] != '/') // vuelve atrás una carpeta
         {
+            printf("\n%s",cwd);
             cwd[strlen(cwd) - 1] = '\0';
         }
-        if (args[1][2] == '/')
+        printf("\n%s",cwd);
+        if (args[1][2] == '/') // si hay dos puntos más
         {
+            printf("\n%s",args[1]);
             args[1] = strchr(args[1], '/'); // no puede dar error porque se ha comprobado que está
+            printf("\n%s",args[1]);
         }
         else
         {
             break;
         }
     }
-    printf("antes espacios");
+    printf("\nantes espacios\n");
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
     char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
     int i = 1;                                     // índice del argumento que se está comprobando
