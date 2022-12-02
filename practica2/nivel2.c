@@ -167,8 +167,6 @@ int internal_cd(char **args)
         return FAILURE;
     }
     // si se quiere ir al HOME
-        printf("%s",args[1]);
-        fflush(stdout);
     if (args[1] == NULL)
     {
         if (chdir(home)) // si error
@@ -183,6 +181,9 @@ int internal_cd(char **args)
         return SUCCESS;
     }
     // comprobación de puntos para ir a una carpeta superior en los argumentos
+    printf("\n%c|%c",args[1][0],args[1][1]);
+    printf("\d%c|%d",46-args[1][0],46-args[1][1]);
+        fflush(stdout);
     while (args[1][0] == args[1][1] == '.') // si hay ..
     {
         printf("%s",home);
