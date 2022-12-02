@@ -78,7 +78,7 @@ int parse_args(char **args, char *line)
     {
         fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
     }
-    if(args[i] != NULL && args[i][0] != '#')
+    if(args[i] != NULL && args[i][0] == '#')
     {
         args[i] = NULL;
         if (DEBUGN1)
@@ -91,29 +91,16 @@ int parse_args(char **args, char *line)
     {
         i++;
         args[i] = strtok(NULL, delim);
-        if(args[i] == NULL)
+        if (DEBUGN1)
         {
+            fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
+        }
+        if(args[i] != NULL && args[i][0] == '#')
+        {
+            args[i] = NULL;
             if (DEBUGN1)
             {
                 fprintf(stderr, GRIS_T "[parse_args()→token %d: #inexistente]\n[parse_args()→token %d corregido: (null)]\n" RESET, i);
-            }
-        }
-        else
-        {
-            if (args[i][0] != '#')
-            {
-                if (DEBUGN1)
-                {
-                    fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
-                }
-            }
-            else
-            {
-                args[i] = NULL;
-                if (DEBUGN1)
-                {
-                    fprintf(stderr, GRIS_T "[parse_args()→token %d: #inexistente]\n[parse_args()→token %d corregido: (null)]\n" RESET, i);
-                }
             }
         }
     }
