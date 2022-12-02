@@ -69,33 +69,13 @@ int execute_line(char *line)
 }
 int parse_args(char **args, char *line)
 {
-    const char delim[4] = "\t\n\r"; // delimitadores
-    int i = 0;                      // índice
+    const char delim[4] = "\t\n\r "; // delimitadores
+    int i = 0;                       // índice
     // primer token
-    args[0] = strtok(line, delim);
-    if (args[0][0] != '#')
-    {
-        if (DEBUGN1)
-        {
-            fprintf(stderr, GRIS_T "[parse_args()→token 0: %s]\n" RESET, args[0]);
-        }
-    }
-    else
-    {
-        args[0] = NULL;
-        if (DEBUGN1)
-        {
-            fprintf(stderr, GRIS_T "[parse_args()→token 0: #inexistente]\n[parse_args()→token 0 corregido: (null)]\n" RESET);
-        }
-    }
+    args[0] = strtok(line, delim); // no puede ser NULL porque eso lo comprueba read_line
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
     {
-        i++;
-        printf( " %s\n", args[i-1] );
-        args[i] = strtok(NULL, delim);
-        printf("despues strtok");
-    fflush(stdout);
         if (args[i][0] != '#')
         {
             if (DEBUGN1)
@@ -111,6 +91,8 @@ int parse_args(char **args, char *line)
                 fprintf(stderr, GRIS_T "[parse_args()→token %d: #inexistente]\n[parse_args()→token %d corregido: (null)]\n" RESET, i);
             }
         }
+        i++;
+        args[i] = strtok(NULL, delim);
     }
     args[ARGS_SIZE - 1] = NULL; // el último token siempre ha de ser NULL
     return i;
