@@ -183,19 +183,19 @@ int internal_cd(char **args)
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] && args[1][0] == 46) // si hay ..
     {
-        if (strcmp(cwd, home)) // si ya se está en el directorio HOME no se puede subir más
+        /*if (strcmp(cwd, home)) // si ya se está en el directorio HOME no se puede subir más
         {
             perror("internal_cd() error, access denied into a folder above HOME");
             return FAILURE;
-        }
-        do // elimino la barra y vuelve atrás una carpeta
+        }*/
+        do // vuelve atrás una carpeta
         {
             cwd[strlen(cwd) - 1] = '\0';
-        } while (cwd[strlen(cwd) - 1] != '/');
+        } while (cwd[strlen(cwd) - 1] != 47); // 47 es /
         cwd[strlen(cwd) - 1] = '\0'; // elimino la barra sobrante
         args[1]++; // quito los dos puntos del string
         args[1]++; 
-        if (args[1][0] == '/') // si es una barra es que hay dos puntos más
+        if (args[1][0] == 47) // si es una barra es que hay dos puntos más
         {
             args[1]++; // quito la barra
         }
@@ -215,6 +215,7 @@ int internal_cd(char **args)
         if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
         { 
             int tipoComa = args[i][0];
+            args[i]++; // paso por encima de la comilla
             while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i])-1] == 1 || args[i][strlen(args[i])-1] == 6))
             {
                 strcat(argsToCwd, args[i]);
