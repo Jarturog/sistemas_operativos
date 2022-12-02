@@ -246,6 +246,11 @@ int internal_cd(char **args)
 }
 int internal_export(char **args)
 {
+    if(args[1] == NULL)
+    {
+        fprintf(stderr, ROJO_T "Error de sintaxis. Uso: export Nombre=Valor\n" RESET);
+        return FAILURE;
+    }
     char *valor;
     if(!(valor = strchr(args[1], 61))) // 61 es =
     {
