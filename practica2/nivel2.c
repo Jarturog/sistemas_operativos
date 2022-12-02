@@ -188,17 +188,15 @@ int internal_cd(char **args)
             cwd[strlen(cwd) - 1] = '\0';
         } while (cwd[strlen(cwd) - 1] != '/');
         cwd[strlen(cwd) - 1] = '\0'; // elimino la barra sobrante
-        if (args[1][2] == '/') // si hay dos puntos más
+        args[1]++; // quito los dos puntos del string
+        args[1]++; 
+        if (args[1][2] == '/') // si es una barra es que hay dos puntos más
         {
             printf("\n%s",args[1]);
             fflush(stdout);
-            args[1] = strchr(args[1], '/'); // no puede dar error porque se ha comprobado que está
+            args[1]++; // quito la barra
             printf("\n%s",args[1]);
             fflush(stdout);
-        }
-        else
-        {
-            break;
         }
     }
     printf("\nantes espacios\n");
