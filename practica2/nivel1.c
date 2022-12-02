@@ -92,9 +92,10 @@ int parse_args(char **args, char *line)
     while (args[i] != NULL && i < ARGS_SIZE - 1)
     {
         i++;
-            printf("%d",i);
-    fflush(stdout);
+        printf( " %s\n", args[i-1] );
         args[i] = strtok(NULL, delim);
+        printf("despues strtok");
+    fflush(stdout);
         if (args[i][0] != '#')
         {
             if (DEBUGN1)
