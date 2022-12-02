@@ -61,7 +61,7 @@ int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
     // fragmenta line en tokens
-    if(!parse_args(args, line)) // si hay tokens
+    if(parse_args(args, line)) // si hay tokens
     { 
         // comprueba si es un comando interno
         check_internal(args);
