@@ -67,7 +67,7 @@ int execute_line(char *line)
 }
 int parse_args(char **args, char *line)
 {
-    char *args[ARGS_SIZE];
+    char **args[ARGS_SIZE];
     const char delim[4] = "\t\n\r"; // delimitadores
     int i = 0;                      // índice
     // primer token
