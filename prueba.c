@@ -23,13 +23,38 @@ int internal_bg(char **args);
 int main()
 {
     char line[COMMAND_LINE_SIZE];
+    while (1)
+    {
+        if (read_line(line))
+        {
+            execute_line(line);
+        }
+    }
 
     return 0;
 }
-char *read_line(char *line){
-  return "s";
+
+char *read_line(char *line)
+{
+    imprimir_prompt();
+    if (fgets(line, COMMAND_LINE_SIZE, stdin))
+    {
+        line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
+        return line;
+    } // si es NULL
+    if (feof(stdin))
+    { // CTRL+D
+        printf("\radiós");
+        exit(0);
+    }
+    return NULL;
 }
-void imprimir_prompt(){
+void imprimir_prompt()
+{
+    char cwd[COMMAND_LINE_SIZE];
+    getcwd(cwd, COMMAND_LINE_SIZE);
+    printf("%s %s %c ", getenv("USER"), cwd, PROMPT);
+    fflush(stdout);
 }
 int parse_args(char **args, char *line){
   return 1;
