@@ -200,35 +200,35 @@ int internal_cd(char **args)
             args[1]++; // quito la barra
         }
     }
-    
-    printf("\nantes espacios\n");
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
     char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
     int i = 1;                                     // índice del argumento que se está comprobando
     while (args[i] != NULL && args[i][0] != '\0')
     {
-        if (args[i][strlen(args[i]) - 1] == 92 && args[i + 1] != NULL) // si hay la barra inclinada del revés
-        { 
-            args[i][strlen(args[i]) - 1] = ' ';
-            strcat(argsToCwd, "/");
-            strcat(argsToCwd, args[i]);
-            strcat(argsToCwd, args[i + 1]);
-            i++;
-        }
-        else if (args[i+1]!=NULL && (args[i][0] == args[i + 1][strlen(args[i + 1]) - 1] == 1) || (args[i][0] == args[i + 1][strlen(args[i + 1]) - 1] == 6))
-        { // si hay comillas simples o dobles
-            args[i][0] = '/';
-            strcat(argsToCwd, args[i]);
-            strcat(argsToCwd, " ");
-            args[i][strlen(args[i + 1]) - 1] = '\0'; // al quitarle substituir la comilla por el \0 reduzco el tamaño del string
-            strcat(argsToCwd, args[i + 1]);
-            i++;
-        }
-        else
+        strcat(argsToCwd, "/");
+        while (args[i] != NULL && args[i][0] != '\0' && args[i][strlen(args[i]) - 1] == 92) // si hay la barra inclinada del revés
         {
-            strcat(argsToCwd, "/");
+            args[i][strlen(args[i]) - 1] = ' ';
             strcat(argsToCwd, args[i]);
+            i++;
         }
+        if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
+        { 
+            int tipoComa = args[i][0];
+            while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i])-1] == 1 || args[i][strlen(args[i])-1] == 6))
+            {
+                strcat(argsToCwd, args[i]);
+                strcat(argsToCwd, " ");
+                i++;
+            }
+            if(args[i][strlen(args[i])-1] != tipoComa) // si no es " " o ' '
+            {
+                perror("Error en internal_cd() por comillas diferentes");
+                return FAILURE;
+            }
+            args[i][strlen(args[i]) - 1] = '\0'; // al quitarle substituir la comilla por el \0 reduzco el tamaño del string
+        }
+        strcat(argsToCwd, args[i]);
         i++; // en el caso de que no hubiera espacios va al siguiente argumento, en caso contrario habrá ido de dos en dos
     }
     // concateno argsToCwd (lo que ha escrito el usuario que no sean ..) y cambio la dirección actual a esa
@@ -254,7 +254,7 @@ int internal_export(char **args)
     }
     if (DEBUGN2)
     {
-        fprintf(stderr, ROJO_T "[internal_export()→ nombre: %s]\n[internal_export()→ valor: %s]\n" RESET, nombre, getenv(nombre));
+        fprintf(stderr, GRIS_T "[internal_export()→ nombre: %s]\n[internal_export()→ valor: %s]\n" RESET, nombre, getenv(nombre));
     }
     if ((nombre == NULL) || (valor == NULL) || (nombre[0] == '\0') || (valor[0] == '\0'))
     {
@@ -266,13 +266,13 @@ int internal_export(char **args)
         perror("getenv() error");
         return FAILURE;
     }
-    if(!setenv(nombre,valor,1)){
+    if(setenv(nombre,valor,1)){
         perror("setenv() error");
         return FAILURE;
     }
     if (DEBUGN2)
     {
-        fprintf(stderr, ROJO_T "[internal_export()→ antiguo valor para %s: %s]\n[internal_export()→ nuevo valor para %s: %s]\n" RESET, nombre, vInicial, nombre, getenv(nombre));
+        fprintf(stderr, GRIS_T "[internal_export()→ antiguo valor para %s: %s]\n[internal_export()→ nuevo valor para %s: %s]\n" RESET, nombre, vInicial, nombre, getenv(nombre));
     }
     return SUCCESS;
 }
