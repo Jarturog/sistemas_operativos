@@ -189,7 +189,7 @@ int internal_cd(char **args)
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] == '.') // si hay ..
     {
-        if (strcmp(cwd, home)) // si ya se está en el directorio HOME no se puede subir más
+        if (strcmp(cwd, home) == 0) // si ya se está en el directorio HOME no se puede subir más
         {
             perror("internal_cd() error, access denied into a folder above HOME");
             return FAILURE;
@@ -238,8 +238,8 @@ int internal_cd(char **args)
         }
         i++; // en el caso de que no hubiera espacios va al siguiente argumento, en caso contrario habrá ido de dos en dos
     }
-    printf("\nantes chdir\n%s\n%s\n",argsToCwd,strcat(cwd, argsToCwd));
     // concateno argsToCwd (lo que ha escrito el usuario que no sean ..) y cambio la dirección actual a esa
+    strcat(cwd, argsToCwd);
     if (chdir(cwd)) // si error
     {
         perror("chdir() error");
