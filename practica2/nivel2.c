@@ -167,6 +167,8 @@ int internal_cd(char **args)
         return FAILURE;
     }
     // si se quiere ir al HOME
+        printf("%s",args[1]);
+        fflush(stdout);
     if (args[1] == NULL)
     {
         if (chdir(home)) // si error
