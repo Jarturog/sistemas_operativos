@@ -72,8 +72,6 @@ int parse_args(char **args, char *line)
     const char delim[4] = "\t\n\r"; // delimitadores
     int i = 0;                      // índice
     // primer token
-    printf("primer token");
-    fflush(stdout);
     args[0] = strtok(line, delim);
     if (args[0][0] != '#')
     {
@@ -90,12 +88,12 @@ int parse_args(char **args, char *line)
             fprintf(stderr, GRIS_T "[parse_args()→token 0: #inexistente]\n[parse_args()→token 0 corregido: (null)]\n" RESET);
         }
     }
-    printf("resto de tokens");
-    fflush(stdout);
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
     {
         i++;
+            printf("%d",i);
+    fflush(stdout);
         args[i] = strtok(NULL, delim);
         if (args[i][0] != '#')
         {
