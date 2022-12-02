@@ -166,6 +166,7 @@ int internal_cd(char **args)
         perror("getcwd() error");
         return FAILURE;
     }
+    char *cwdOriginal = strcpy(cwdOriginal,cwd); // mantengo el original que no modificaré en una variable por si acaso
     // si se quiere ir al HOME
     if (args[1] == NULL)
     {
@@ -236,6 +237,7 @@ int internal_cd(char **args)
     strcat(cwd, argsToCwd);
     if (chdir(cwd)) // si error
     {
+        chdir(cwdOriginal); // restauro el current directory
         perror("chdir() error");
         return FAILURE;
     }
