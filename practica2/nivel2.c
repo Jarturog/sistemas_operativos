@@ -247,9 +247,10 @@ int internal_cd(char **args)
 int internal_export(char **args)
 {
     char *nombre = strtok(args[1], "=");
-    while(args[1][i]=='='){
+    while(args[1][0]!='='){
         args[1]++;
     }
+    args[1]++;
     if (DEBUGN2)
     {
         fprintf(stderr, GRIS_T "[internal_export()→ nombre: %s]\n[internal_export()→ valor: %s]\n" RESET, nombre, getenv(nombre));
