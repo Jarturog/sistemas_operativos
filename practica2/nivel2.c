@@ -155,17 +155,15 @@ int internal_cd(char **args)
 {
     char cwd[COMMAND_LINE_SIZE]; // actual directory
     char *home;
-    printf("antes home");
     if (!(home = getenv("HOME"))) // si error
     {
         perror("chdir() error");
         return FAILURE;
     }
-    printf("cd sin nada");
     // si se quiere ir al HOME
     if (args[1] == NULL)
     {
-        if (!chdir(home)) // si error
+        if (chdir(home)) // si error
         {
             perror("chdir() error");
             return FAILURE;
@@ -181,7 +179,6 @@ int internal_cd(char **args)
         }
         return SUCCESS;
     }
-    printf("antes getcwd");
     // consigo el actual directory en cwd
     if (!getcwd(cwd, COMMAND_LINE_SIZE)) // lo pongo antes por el VOLVER ATRÁS
     {
@@ -217,16 +214,16 @@ int internal_cd(char **args)
     int i = 1;                                     // índice del argumento que se está comprobando
     while (args[i] != NULL)
     {
-        if (args[i][strlen(args[i]) - 1] == 92 && args[i + 1] != NULL)
-        { // si hay la barra inclinada del revés
+        if (args[i][strlen(args[i]) - 1] == 92 && args[i + 1] != NULL) // si hay la barra inclinada del revés
+        { 
             args[i][strlen(args[i]) - 1] = ' ';
             strcat(argsToCwd, "/");
             strcat(argsToCwd, args[i]);
             strcat(argsToCwd, args[i + 1]);
             i++;
         }
-        else if ((args[i][0] == args[i + 1][strlen(args[i + 1]) - 1] == 1) || (args[i][0] == args[i + 1][strlen(args[i + 1]) - 1] == 6))
-        {
+        else if (args[i+1]!=NULL && (args[i][0] == args[i + 1][strlen(args[i + 1]) - 1] == 1) || (args[i][0] == args[i + 1][strlen(args[i + 1]) - 1] == 6))
+        { // si hay comillas simples o dobles
             args[i][0] = '/';
             strcat(argsToCwd, args[i]);
             strcat(argsToCwd, " ");
