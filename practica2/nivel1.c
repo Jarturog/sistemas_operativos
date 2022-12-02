@@ -59,15 +59,14 @@ void imprimir_prompt()
 }
 int execute_line(char *line)
 {
-    char **tokens;
+    char **args[ARGS_SIZE];
     // fragmenta line en tokens
-    parse_args(tokens, line);
+    parse_args(args, line);
     // comprueba si es un comando interno
-    check_internal(tokens);
+    check_internal(args);
 }
 int parse_args(char **args, char *line)
 {
-    char **args[ARGS_SIZE];
     const char delim[4] = "\t\n\r"; // delimitadores
     int i = 0;                      // índice
     // primer token
