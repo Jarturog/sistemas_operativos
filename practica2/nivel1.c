@@ -54,7 +54,7 @@ void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
     getcwd(cwd, COMMAND_LINE_SIZE);
-    printf(MAGENTA_T "%s" RESET ":" CYAN_T "~%s " VERDE_T "%c " RESET, getenv("USER"), cwd, PROMPT);
+    printf(MAGENTA_T "%s" RESET ":" CYAN_T "%s " VERDE_T "%c " RESET, getenv("USER"), cwd, PROMPT);
     fflush(stdout);
 }
 int execute_line(char *line)
