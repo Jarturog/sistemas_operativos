@@ -28,8 +28,6 @@ int main()
     {
         if (read_line(line))
         {
-            printf("antes execute");
-            fflush(stdout);
             execute_line(line);
             printf("después execute");
             fflush(stdout);
@@ -42,15 +40,9 @@ int main()
 char *read_line(char *line)
 {
     imprimir_prompt();
-    printf("antes fgets");
-    fflush(stdout);
     if (fgets(line, COMMAND_LINE_SIZE, stdin) != NULL)
     {
-        printf("antes line = 0");
-        fflush(stdout);
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
-        printf("después line = 0");
-        fflush(stdout);
         return line;
     } // si es NULL
     if (feof(stdin))
@@ -64,21 +56,16 @@ void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
     getcwd(cwd, COMMAND_LINE_SIZE);
-    if (getcwd(cwd, COMMAND_LINE_SIZE) == NULL){
-      perror("getcwd() error");
-    }else{
-      printf("current working directory is: %s\n", cwd);
-    }
     printf("%s %s %s ", getenv("USER"), cwd, PROMPT);
-    printf("todo bien");
     fflush(stdout);
-    printf("todo bien despues fflush");
 }
 int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
     // fragmenta line en tokens
+    printf("\n\nantes parse_args");
     parse_args(args, line);
+    printf("\n\nantes check_internal");
     // comprueba si es un comando interno
     check_internal(args);
 }
