@@ -40,7 +40,8 @@ int main()
 char *read_line(char *line)
 {
     imprimir_prompt();
-    if (fgets(line, COMMAND_LINE_SIZE, stdin))
+    printf("antes fgets");
+    if (fgets(line, COMMAND_LINE_SIZE, stdin) != NULL)
     {
         printf("antes line = 0");
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
