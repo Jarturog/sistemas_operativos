@@ -59,7 +59,7 @@ void imprimir_prompt()
 }
 int execute_line(char *line)
 {
-    char **args[ARGS_SIZE];
+    char *args[ARGS_SIZE];
     // fragmenta line en tokens
     parse_args(args, line);
     // comprueba si es un comando interno
