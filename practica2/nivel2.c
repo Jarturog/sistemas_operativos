@@ -157,7 +157,7 @@ int internal_cd(char **args)
     char *home;
     if (!(home = getenv("HOME"))) // si error
     {
-        perror("chdir() error");
+        perror("getenv() error");
         return FAILURE;
     }
     // si se quiere ir al HOME
@@ -238,9 +238,9 @@ int internal_cd(char **args)
         }
         i++; // en el caso de que no hubiera espacios va al siguiente argumento, en caso contrario habrá ido de dos en dos
     }
-    printf("antes chdir");
+    printf("\nantes chdir\n%s\n",argsToCwd);
     // concateno argsToCwd (lo que ha escrito el usuario que no sean ..) y cambio la dirección actual a esa
-    if (!chdir(strcat(cwd, argsToCwd))) // si error
+    if (chdir(strcat(cwd, argsToCwd))) // si error
     {
         perror("chdir() error");
         return FAILURE;
