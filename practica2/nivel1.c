@@ -26,7 +26,7 @@ int main()
     char line[COMMAND_LINE_SIZE];
     while (1)
     {
-        if (read_line(line) != NULL)
+        if (read_line(line))
         {
             execute_line(line);
         }
@@ -54,7 +54,7 @@ void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
     getcwd(cwd, COMMAND_LINE_SIZE);
-    printf("%s %s %s ", getenv("USER"), cwd, PROMPT);
+    printf(MORADO_T "%s" RESET ":" CYAN_T "~%s" VERDE_T "%s ", getenv("USER"), cwd, PROMPT);
     fflush(stdout);
 }
 int execute_line(char *line)
@@ -87,7 +87,6 @@ int parse_args(char **args, char *line)
             if (DEBUGN1)
             {
                 fprintf(stderr, GRIS_T "[parse_args()→token %d: #inexistente]\n[parse_args()→token %d corregido: (null)]\n" RESET, i);
-                fflush(stdout);
             }
         }
         i++;
