@@ -238,9 +238,9 @@ int internal_cd(char **args)
         }
         i++; // en el caso de que no hubiera espacios va al siguiente argumento, en caso contrario habrá ido de dos en dos
     }
-    printf("\nantes chdir\n%s\n",argsToCwd);
+    printf("\nantes chdir\n%s\n%s\n",argsToCwd,strcat(cwd, argsToCwd));
     // concateno argsToCwd (lo que ha escrito el usuario que no sean ..) y cambio la dirección actual a esa
-    if (chdir(strcat(cwd, argsToCwd))) // si error
+    if (chdir(cwd)) // si error
     {
         perror("chdir() error");
         return FAILURE;
