@@ -28,8 +28,9 @@ int main()
     {
         if (read_line(line))
         {
-            printf("aquí llega bien");
-            //execute_line(line);
+            printf("antes execute");
+            execute_line(line);
+            printf("después execute");
         }
     }
 
@@ -41,7 +42,9 @@ char *read_line(char *line)
     imprimir_prompt();
     if (fgets(line, COMMAND_LINE_SIZE, stdin))
     {
+        printf("antes line = 0");
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
+        printf("después line = 0");
         return line;
     } // si es NULL
     if (feof(stdin))
