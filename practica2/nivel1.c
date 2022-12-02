@@ -26,7 +26,7 @@ int main()
     char line[COMMAND_LINE_SIZE];
     while (1)
     {
-        if (read_line(line))
+        if (read_line(line) != NULL)
         {
             execute_line(line);
             printf("después execute");
@@ -89,6 +89,7 @@ int parse_args(char **args, char *line)
             if (DEBUGN1)
             {
                 fprintf(stderr, GRIS_T "[parse_args()→token %d: #inexistente]\n[parse_args()→token %d corregido: (null)]\n" RESET, i);
+                fflush(stdout);
             }
         }
         i++;
@@ -99,41 +100,42 @@ int parse_args(char **args, char *line)
 }
 int check_internal(char **args)
 {
-    if (strcmp(args[0], "exit"))
+    if (strcmp(args[0], "exit") == 0)
     {
         exit(0);
         return 1;
     }
-    else if (strcmp(args[0], "cd"))
+    else if (strcmp(args[0], "cd") == 0)
     {
         internal_cd(args);
         return 1;
     }
-    else if (strcmp(args[0], "export"))
+    else if (strcmp(args[0], "export") == 0)
     {
         internal_export(args);
         return 1;
     }
-    else if (strcmp(args[0], "source"))
+    else if (strcmp(args[0], "source") == 0)
     {
         internal_source(args);
         return 1;
     }
-    else if (strcmp(args[0], "jobs"))
+    else if (strcmp(args[0], "jobs") == 0)
     {
         internal_jobs(args);
         return 1;
     }
-    else if (strcmp(args[0], "fg"))
+    else if (strcmp(args[0], "fg") == 0)
     {
         internal_fg(args);
         return 1;
     }
-    else if (strcmp(args[0], "bg"))
+    else if (strcmp(args[0], "bg") == 0)
     {
         internal_bg(args);
         return 1;
     }
+    
     return 0;
 }
 int internal_cd(char **args)
