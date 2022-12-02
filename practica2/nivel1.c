@@ -63,9 +63,7 @@ int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
     // fragmenta line en tokens
-    printf("\n\nantes parse_args");
     parse_args(args, line);
-    printf("\n\nantes check_internal");
     // comprueba si es un comando interno
     check_internal(args);
 }
@@ -74,6 +72,8 @@ int parse_args(char **args, char *line)
     const char delim[4] = "\t\n\r"; // delimitadores
     int i = 0;                      // índice
     // primer token
+    printf("primer token");
+    fflush(stdout);
     args[0] = strtok(line, delim);
     if (args[0][0] != '#')
     {
@@ -90,6 +90,8 @@ int parse_args(char **args, char *line)
             fprintf(stderr, GRIS_T "[parse_args()→token 0: #inexistente]\n[parse_args()→token 0 corregido: (null)]\n" RESET);
         }
     }
+    printf("resto de tokens");
+    fflush(stdout);
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
     {
