@@ -7,7 +7,7 @@
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define DEBUGN1 0
-#define PROMPT '$'
+#define PROMPT "$"
 // declaraciones de funciones
 char *read_line(char *line);
 void imprimir_prompt();
@@ -64,8 +64,15 @@ void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
     getcwd(cwd, COMMAND_LINE_SIZE);
-    printf("%s %s %c ", getenv("USER"), cwd, PROMPT);
+    if (getcwd(cwd, COMMAND_LINE_SIZE) == NULL){
+      perror("getcwd() error");
+    }else{
+      printf("current working directory is: %s\n", cwd);
+    }
+    printf("%s %s %s ", getenv("USER"), cwd, PROMPT);
+    printf("todo bien");
     fflush(stdout);
+    printf("todo bien despues fflush")
 }
 int execute_line(char *line)
 {
