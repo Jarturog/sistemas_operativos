@@ -181,28 +181,13 @@ int internal_cd(char **args)
         return SUCCESS;
     }
     // comprobación de puntos para ir a una carpeta superior en los argumentos
-    printf("\n%c|%c",args[1][0],args[1][1]);
-    printf("\d%c|%d",46-args[1][0],46-args[1][1]);
-        fflush(stdout);
-    while (args[1][0] == args[1][1] == '.') // si hay ..
+    while (args[1][0] == args[1][1] && args[1][0] == 46) // si hay ..
     {
-        printf("%s",home);
-        fflush(stdout);
-        if (strcmp(cwd, home) == 0) // si ya se está en el directorio HOME no se puede subir más
+        do // elimino la barra y vuelve atrás una carpeta
         {
-            perror("internal_cd() error, access denied into a folder above HOME");
-            return FAILURE;
-        }
-        printf("\n%s",cwd);
-        fflush(stdout);
-        cwd[strlen(cwd) - 1] = '\0';        // elimino la barra
-        while (cwd[strlen(cwd) - 1] != '/') // vuelve atrás una carpeta
-        {
-            printf("\n%s",cwd);
-            fflush(stdout);
             cwd[strlen(cwd) - 1] = '\0';
-        }
-        printf("\n%s",cwd);
+        } while (cwd[strlen(cwd) - 1] != '/');
+        cwd[strlen(cwd) - 1] = '\0'; // elimino la barra sobrante
         if (args[1][2] == '/') // si hay dos puntos más
         {
             printf("\n%s",args[1]);
