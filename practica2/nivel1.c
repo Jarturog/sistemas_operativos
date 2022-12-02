@@ -80,11 +80,11 @@ int parse_args(char **args, char *line)
     }
     if(args[i] != NULL && args[i][0] == '#')
     {
-        args[i] = NULL;
         if (DEBUGN1)
         {
-            fprintf(stderr, GRIS_T "[parse_args()→token %d: #inexistente]\n[parse_args()→token %d corregido: (null)]\n" RESET, i);
+            fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
         }
+        args[i] = NULL;
     }  
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
@@ -97,11 +97,11 @@ int parse_args(char **args, char *line)
         }
         if(args[i] != NULL && args[i][0] == '#')
         {
-            args[i] = NULL;
             if (DEBUGN1)
             {
-                fprintf(stderr, GRIS_T "[parse_args()→token %d: #inexistente]\n[parse_args()→token %d corregido: (null)]\n" RESET, i);
+                fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
             }
+            args[i] = NULL;
         }
     }
     args[ARGS_SIZE - 1] = NULL; // el último token siempre ha de ser NULL
