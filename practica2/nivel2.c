@@ -203,20 +203,24 @@ int internal_cd(char **args)
     }
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
     char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
-    int i = 1;                                     // índice del argumento que se está comprobando
+    memset(argsToCwd,0,COMMAND_LINE_SIZE * ARGS_SIZE); // tengo que rellenar la memoria que ocupa de '\0' porque sino 
+                                                       // en cada llamada se mantiene el valor anterior de argsToCwd
+    int i = 1; // índice del argumento que se está comprobando
     while (args[i] != NULL && args[i][0] != '\0')
     {
         strcat(argsToCwd, "/");
         while (args[i] != NULL && args[i][0] != '\0' && args[i][strlen(args[i]) - 1] == 92) // si hay la barra inclinada del revés
         {
-            args[i][strlen(args[i]) - 1] = ' ';
             strcat(argsToCwd, args[i]);
+            strcat(argsToCwd, " ");
             i++;
         }
-        if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
+        else if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
         { 
             int tipoComa = args[i][0];
             args[i]++; // paso por encima de la comilla
+            printf("\n%s\n%c",args[i],tipoComa);
+            fflush(stdout);
             while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i])-1] == 1 || args[i][strlen(args[i])-1] == 6))
             {
                 strcat(argsToCwd, args[i]);
@@ -228,7 +232,7 @@ int internal_cd(char **args)
                 perror("Error en internal_cd() por comillas diferentes");
                 return FAILURE;
             }
-            args[i][strlen(args[i]) - 1] = '\0'; // al quitarle substituir la comilla por el \0 reduzco el tamaño del string
+            args[i][strlen(args[i]) - 1] = '\0'; // al substituir la comilla por el \0 reduzco el tamaño del string
         }
         strcat(argsToCwd, args[i]);
         i++; // en el caso de que no hubiera espacios va al siguiente argumento, en caso contrario habrá ido de dos en dos
