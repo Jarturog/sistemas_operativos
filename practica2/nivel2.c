@@ -160,6 +160,12 @@ int internal_cd(char **args)
         perror("getenv() error");
         return FAILURE;
     }
+    // consigo el actual directory en cwd
+    if (!getcwd(cwd, COMMAND_LINE_SIZE))
+    {
+        perror("getcwd() error");
+        return FAILURE;
+    }
     // si se quiere ir al HOME
     if (args[1] == NULL)
     {
@@ -170,42 +176,37 @@ int internal_cd(char **args)
         }
         if (DEBUGN2)
         {
-            if (!getcwd(cwd, COMMAND_LINE_SIZE)) // si error
-            {
-                perror("getcwd() error");
-                return FAILURE;
-            }
             fprintf(stderr, GRIS_T "[internal_cd()→ PWD: %s]\n" RESET, cwd);
         }
         return SUCCESS;
     }
-    // consigo el actual directory en cwd
-    if (!getcwd(cwd, COMMAND_LINE_SIZE)) // lo pongo antes por el VOLVER ATRÁS
-    {
-        perror("getcwd() error");
-        return FAILURE;
-    }
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] == '.') // si hay ..
     {
+        printf("%s",home);
+        fflush(stdout);
         if (strcmp(cwd, home) == 0) // si ya se está en el directorio HOME no se puede subir más
         {
             perror("internal_cd() error, access denied into a folder above HOME");
             return FAILURE;
         }
         printf("\n%s",cwd);
+        fflush(stdout);
         cwd[strlen(cwd) - 1] = '\0';        // elimino la barra
         while (cwd[strlen(cwd) - 1] != '/') // vuelve atrás una carpeta
         {
             printf("\n%s",cwd);
+            fflush(stdout);
             cwd[strlen(cwd) - 1] = '\0';
         }
         printf("\n%s",cwd);
         if (args[1][2] == '/') // si hay dos puntos más
         {
             printf("\n%s",args[1]);
+            fflush(stdout);
             args[1] = strchr(args[1], '/'); // no puede dar error porque se ha comprobado que está
             printf("\n%s",args[1]);
+            fflush(stdout);
         }
         else
         {
