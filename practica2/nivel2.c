@@ -246,7 +246,16 @@ int internal_cd(char **args)
 }
 int internal_export(char **args)
 {
-    char *valor = strchr(args[1], 61); // 61 es =
+    char *valor;
+    if(!(valor = strchr(args[1], 61))) // 61 es =
+    {
+        if (DEBUGN2)
+        {
+            fprintf(stderr, GRIS_T "[internal_export()→ nombre: %s]\n[internal_export()→ valor: %s]\n" RESET, args[1], getenv(args[1]));
+        }
+        fprintf(stderr, ROJO_T "Error de sintaxis. Uso: export Nombre=Valor\n" RESET);
+        return FAILURE;
+    }
     valor++; // ignoro el = que separa nombre y valor
     char *nombre = strtok(args[1], "=");
     if (DEBUGN2)
