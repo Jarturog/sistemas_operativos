@@ -28,13 +28,11 @@ int main()
     {
         if (read_line(line))
         {
-            /*
             printf("antes execute");
             fflush(stdout);
             execute_line(line);
             printf("después execute");
             fflush(stdout);
-            */
         }
     }
 
@@ -43,7 +41,7 @@ int main()
 
 char *read_line(char *line)
 {
-    //imprimir_prompt();
+    imprimir_prompt();
     printf("antes fgets");
     fflush(stdout);
     if (fgets(line, COMMAND_LINE_SIZE, stdin) != NULL)
@@ -74,7 +72,7 @@ void imprimir_prompt()
     printf("%s %s %s ", getenv("USER"), cwd, PROMPT);
     printf("todo bien");
     fflush(stdout);
-    printf("todo bien despues fflush")
+    printf("todo bien despues fflush");
 }
 int execute_line(char *line)
 {
