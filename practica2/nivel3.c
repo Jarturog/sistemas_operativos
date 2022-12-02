@@ -75,13 +75,12 @@ int main()
 char *read_line(char *line)
 {
     imprimir_prompt();
-    fflush(stdout);
-    if (fgets(line, COMMAND_LINE_SIZE, stdin))
+    if (fgets(line, COMMAND_LINE_SIZE, stdin) != NULL)
     {
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
         return line;
     } // si es NULL
-    if (feof(stdin))
+    if (feof(stdin) )
     { // CTRL+D
         printf("\radiós");
         exit(0);
