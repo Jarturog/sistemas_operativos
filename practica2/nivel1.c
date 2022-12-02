@@ -6,7 +6,7 @@
 //#define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
-#define DEBUGN1 0
+#define DEBUGN1 -1
 #define PROMPT "$"
 // declaraciones de funciones
 char *read_line(char *line);
@@ -29,8 +29,6 @@ int main()
         if (read_line(line) != NULL)
         {
             execute_line(line);
-            printf("después execute");
-            fflush(stdout);
         }
     }
 
