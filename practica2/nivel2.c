@@ -155,11 +155,13 @@ int internal_cd(char **args)
 {
     char cwd[COMMAND_LINE_SIZE]; // actual directory
     char *home;
+    printf("antes home");
     if (!(home = getenv("HOME"))) // si error
     {
         perror("chdir() error");
         return FAILURE;
     }
+    printf("cd sin nada");
     // si se quiere ir al HOME
     if (args[1] == NULL)
     {
@@ -179,12 +181,14 @@ int internal_cd(char **args)
         }
         return SUCCESS;
     }
+    printf("antes getcwd");
     // consigo el actual directory en cwd
     if (!getcwd(cwd, COMMAND_LINE_SIZE)) // lo pongo antes por el VOLVER ATRÁS
     {
         perror("getcwd() error");
         return FAILURE;
     }
+    printf("antes ..");
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] == '.') // si hay ..
     {
@@ -207,6 +211,7 @@ int internal_cd(char **args)
             break;
         }
     }
+    printf("antes " ",' ',\);
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
     char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
     int i = 1;                                     // índice del argumento que se está comprobando
@@ -236,6 +241,7 @@ int internal_cd(char **args)
         }
         i++; // en el caso de que no hubiera espacios va al siguiente argumento, en caso contrario habrá ido de dos en dos
     }
+    printf("antes chdir");
     // concateno argsToCwd (lo que ha escrito el usuario que no sean ..) y cambio la dirección actual a esa
     if (!chdir(strcat(cwd, argsToCwd))) // si error
     {
