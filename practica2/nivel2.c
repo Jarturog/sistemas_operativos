@@ -192,18 +192,15 @@ int internal_cd(char **args)
         args[1]++; 
         if (args[1][2] == '/') // si es una barra es que hay dos puntos más
         {
-            printf("\n%s",args[1]);
-            fflush(stdout);
             args[1]++; // quito la barra
-            printf("\n%s",args[1]);
-            fflush(stdout);
         }
     }
+    
     printf("\nantes espacios\n");
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
     char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
     int i = 1;                                     // índice del argumento que se está comprobando
-    while (args[i] != NULL)
+    while (args[i] != NULL && args[i][0] != '\0')
     {
         if (args[i][strlen(args[i]) - 1] == 92 && args[i + 1] != NULL) // si hay la barra inclinada del revés
         { 
