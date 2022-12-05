@@ -120,7 +120,7 @@ int execute_line(char *line)
         {
             if (DEBUGN3)
             {
-                fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, pid, line);
+                fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line);
             }
             signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
             signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
