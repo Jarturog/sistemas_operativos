@@ -57,12 +57,12 @@ void jobs_list_update(int idx, pid_t pid, char status, char cmd[]){
 
 // declaraciones de funciones
 
-int main()
+int main(int argc, char *argv[])
 {
     //Se inicializa la linia de comandos, el job_List y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
     jobs_list_reset(0);
-    strcpy(mi_shell, line);
+    strcpy(mi_shell, argv[0]);
 
     //Se inicia el bucle para leer los comandos
     while (1)
