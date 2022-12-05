@@ -5,13 +5,13 @@
 #include <string.h>
 #include "colores.h"
 #include <sys/wait.h>
-//#define _POSIX_C_SOURCE 200112L
+#define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define N_JOBS 64
-#define DEBUGN1 0
-#define DEBUGN2 0
-#define DEBUGN3 -1
+#define DEBUGN1 -1
+#define DEBUGN2 -1
+#define DEBUGN3 0
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
@@ -29,6 +29,8 @@ int internal_source(char **args);
 int internal_jobs(char **args);
 int internal_fg(char **args);
 int internal_bg(char **args);
+void jobs_list_reset(int idx);
+void jobs_list_update(int idx, pid_t pid, char status, char cmd[]);
 
 //Lista de tareas
 struct info_job {
@@ -52,18 +54,20 @@ void jobs_list_update(int idx, pid_t pid, char status, char cmd[]){
     strcpy(jobs_list[idx].cmd, cmd);
 }
 
-//int count,char *argv[]
-int main()
+
+// declaraciones de funciones
+
+int main(char *argv[])
 {
     //Se inicializa la linia de comandos, el job_List y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
     jobs_list_reset(0);
-    //strcpy(mi_shell, argv[0]);
+    strcpy(mi_shell, argv[0]);
 
     //Se inicia el bucle para leer los comandos
     while (1)
     {
-        if (read_line(line))
+        if (read_line(line) != NULL)
         {
             execute_line(line);
         }
@@ -75,18 +79,19 @@ int main()
 char *read_line(char *line)
 {
     imprimir_prompt();
-    if (fgets(line, COMMAND_LINE_SIZE, stdin) != NULL)
+    if (fgets(line, COMMAND_LINE_SIZE, stdin))
     {
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
         return line;
     } // si es NULL
-    if (feof(stdin) )
+    if (feof(stdin))
     { // CTRL+D
         printf("\radiós");
         exit(0);
     }
     return NULL;
 }
+
 void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
@@ -94,13 +99,14 @@ void imprimir_prompt()
     printf(MAGENTA_T "%s" RESET ":" CYAN_T "%s " VERDE_T "%c " RESET, getenv("USER"), cwd, PROMPT);
     fflush(stdout);
 }
+
 int execute_line(char *line)
 {
-    char **tokens;
-    // fragmenta line en tokens
-    parse_args(tokens, line);
+    char *args[ARGS_SIZE];
+    // fragmenta line en args
+    parse_args(args, line);
     // comprueba si es un comando interno
-    if(!check_internal(tokens))
+    if(!check_internal(args))
     {
         //Si no es un comando interno se crea un hilo para ejecutar el comando
         pid_t pid = fork();
@@ -112,7 +118,7 @@ int execute_line(char *line)
         }
         if (pid == 0) //Proceso hijo
         {
-            execvp(tokens[0], tokens);
+            execvp(args[0], args);
             perror("No se encontro la orden");
             exit(FAILURE);
         }
@@ -172,6 +178,7 @@ int parse_args(char **args, char *line)
     args[ARGS_SIZE - 1] = NULL; // el último token siempre ha de ser NULL
     return i;
 }
+
 int check_internal(char **args)
 {
     if (strcmp(args[0], "exit") == 0)
@@ -212,6 +219,7 @@ int check_internal(char **args)
     
     return 0;
 }
+
 int internal_cd(char **args)
 {
     char cwd[COMMAND_LINE_SIZE]; // actual directory
@@ -310,6 +318,7 @@ int internal_cd(char **args)
     }
     return SUCCESS;
 }
+
 int internal_export(char **args)
 {
     if(args[1] == NULL)
@@ -353,6 +362,7 @@ int internal_export(char **args)
     }
     return SUCCESS;
 }
+
 int internal_source(char **args)
 {
     char line[COMMAND_LINE_SIZE];
@@ -406,6 +416,12 @@ int internal_fg(char **args)
     }
     return 1;
 }
-int internal_bg(char **args){
-  return 1;
+
+int internal_bg(char **args)
+{
+    if (DEBUGN1)
+    {
+        fprintf(stderr, GRIS_T "[internal_bg()→Esta función reactivará un proceso detenido para que siga ejecutándose pero en segundo plano.]\n" RESET);
+    }
+    return 1;
 }
