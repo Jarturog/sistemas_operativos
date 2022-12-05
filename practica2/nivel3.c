@@ -116,7 +116,7 @@ int execute_line(char *line)
         {
             if (DEBUGN3)
             {
-                fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, pid, line);
+                fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line);
             }
             execvp(args[0], args);
             perror("No se encontro la orden");
@@ -134,7 +134,7 @@ int execute_line(char *line)
         }
         else //Error
         {
-
+            
         }   
         if (DEBUGN3)
         {
