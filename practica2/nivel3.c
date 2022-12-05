@@ -11,7 +11,7 @@
 #define N_JOBS 64
 #define DEBUGN1 -1
 #define DEBUGN2 -1
-#define DEBUGN3 0
+#define DEBUGN3 1
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
@@ -57,12 +57,12 @@ void jobs_list_update(int idx, pid_t pid, char status, char cmd[]){
 
 // declaraciones de funciones
 
-int main(char *argv[])
+int main()
 {
     //Se inicializa la linia de comandos, el job_List y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
     jobs_list_reset(0);
-    strcpy(mi_shell, argv[0]);
+    strcpy(mi_shell, line);
 
     //Se inicia el bucle para leer los comandos
     while (1)
@@ -111,19 +111,23 @@ int execute_line(char *line)
         //Si no es un comando interno se crea un hilo para ejecutar el comando
         pid_t pid = fork();
         int status;
-        if (DEBUGN3)
-        {
-            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
-            fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, pid, jobs_list[0].cmd);
-        }
+        
         if (pid == 0) //Proceso hijo
         {
+            if (DEBUGN3)
+            {
+                fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, pid, line);
+            }
             execvp(args[0], args);
             perror("No se encontro la orden");
             exit(FAILURE);
         }
         else if (pid > 0) //Proceso padre
         {
+            if (DEBUGN3)
+        {
+            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
+        }
             jobs_list_update(0, pid, 'E', line);
             wait(&status);
             jobs_list_reset(0);
@@ -418,10 +422,3 @@ int internal_fg(char **args)
 }
 
 int internal_bg(char **args)
-{
-    if (DEBUGN1)
-    {
-        fprintf(stderr, GRIS_T "[internal_bg()→Esta función reactivará un proceso detenido para que siga ejecutándose pero en segundo plano.]\n" RESET);
-    }
-    return 1;
-}
