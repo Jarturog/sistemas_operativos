@@ -5,7 +5,7 @@
 #include <string.h>
 #include "colores.h"
 #include <sys/wait.h>
-//#define _POSIX_C_SOURCE 200112L
+#define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define N_JOBS 64
@@ -134,7 +134,7 @@ int execute_line(char *line)
         }
         else //Error
         {
-            
+
         }   
         if (DEBUGN3)
         {
@@ -421,6 +421,11 @@ int internal_fg(char **args)
     return 1;
 }
 
-int internal_bg(char **args){
-   return 1;
+int internal_bg(char **args)
+{
+    if (DEBUGN1)
+    {
+        fprintf(stderr, GRIS_T "[internal_bg()→Esta función reactivará un proceso detenido para que siga ejecutándose pero en segundo plano.]\n" RESET);
+    }
+    return 1;
 }
