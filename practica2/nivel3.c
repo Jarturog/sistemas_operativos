@@ -54,9 +54,6 @@ void jobs_list_update(int idx, pid_t pid, char status, char cmd[]){
     strcpy(jobs_list[idx].cmd, cmd);
 }
 
-
-// declaraciones de funciones
-
 int main(int argc, char *argv[])
 {
     //Se inicializa la linia de comandos, el job_List y la variable mi_shell
