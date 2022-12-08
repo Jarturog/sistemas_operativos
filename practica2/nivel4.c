@@ -1,3 +1,13 @@
+#define _POSIX_C_SOURCE 200112L
+#define COMMAND_LINE_SIZE 1024
+#define ARGS_SIZE 64
+#define N_JOBS 64
+#define DEBUGN1 0
+#define DEBUGN2 0
+#define DEBUGN3 -1
+#define PROMPT '$'
+#define SUCCESS 0
+#define FAILURE -1
 #include <unistd.h>
 #include <stdio.h>
 #include <limits.h>
@@ -5,16 +15,7 @@
 #include <string.h>
 #include "colores.h"
 #include <sys/wait.h>
-#define _POSIX_C_SOURCE 200112L
-#define COMMAND_LINE_SIZE 1024
-#define ARGS_SIZE 64
-#define N_JOBS 64
-#define DEBUGN1 -1
-#define DEBUGN2 -1
-#define DEBUGN3 1
-#define PROMPT '$'
-#define SUCCESS 0
-#define FAILURE -1
+
 static char mi_shell[COMMAND_LINE_SIZE];
 
 // declaraciones de funciones
@@ -107,47 +108,54 @@ void imprimir_prompt()
 int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
+    char line_inalterada[strlen(line)+1]; // paso extra ya que parse_args altera line
+    line_inalterada[strlen(line)-1] = '\0'; // me deshago del salto de línea
+    strcpy(line_inalterada, line);
     // fragmenta line en args
-    parse_args(args, line);
+    if(!parse_args(args, line)) // si no hay tokens
+    { 
+        return SUCCESS;
+    } 
     // comprueba si es un comando interno
-    if (!check_internal(args))
+    if(check_internal(args))
     {
-        // Si no es un comando interno se crea un hilo para ejecutar el comando
-        pid_t pid = fork();
-        int status;
-
-        if (pid == 0) // Proceso hijo
-        {
-            if (DEBUGN3)
-            {
-                fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line);
-            }
-            signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
-            signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
-            execvp(args[0], args);
-            perror("No se encontro la orden");
-            exit(FAILURE);
-        }
-        else if (pid > 0) // Proceso padre
-        {
-            if (DEBUGN3)
-            {
-                fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
-            }
-            signal(SIGINT, ctrlc); // Asocia el manejador ctrlc a la señal SIGINT
-            jobs_list_update(0, pid, 'E', line);
-            while (jobs_list[0].pid > 0)
-            { // cuando finaliza el proceso en primer plano sale del while
-                reaper(SIGINT);
-            }
-        }
-        else // Error
-        {
-        }
+        return SUCCESS;
+    }
+    //Si no es un comando interno se crea un hilo para ejecutar el comando
+    pid_t pid = fork();
+    int status;
+    if (pid == 0) // Proceso hijo
+    {
         if (DEBUGN3)
         {
-            fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), estado: %d]\n" RESET, pid, line, status);
+            fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
         }
+        signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
+        signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
+        execvp(args[0], args);
+        printf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
+        exit(FAILURE);
+    }
+    else if (pid > 0) // Proceso padre
+    {
+        if (DEBUGN3)
+        {
+            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
+        }
+        signal(SIGINT, ctrlc); // Asocia el manejador ctrlc a la señal SIGINT
+        jobs_list_update(0, pid, 'E', line);
+        while (jobs_list[0].pid > 0)
+        { // cuando finaliza el proceso en primer plano sale del while
+             reaper(SIGINT);
+        }
+    }
+    else // Error
+    {
+        perror("Error tratando comando externo con fork()");
+    }
+    if (DEBUGN3)
+    {
+        fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), estado: %d]\n" RESET, pid, line, status);
     }
 }
 
@@ -264,11 +272,6 @@ int internal_cd(char **args)
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] && args[1][0] == 46) // si hay ..
     {
-        /*if (strcmp(cwd, home)) // si ya se está en el directorio HOME no se puede subir más
-        {
-            perror("internal_cd() error, access denied into a folder above HOME");
-            return FAILURE;
-        }*/
         do // vuelve atrás una carpeta
         {
             cwd[strlen(cwd) - 1] = '\0';
@@ -392,25 +395,19 @@ int internal_source(char **args)
         perror(ROJO_T "fopen");
         return FAILURE;
     }
-    else
+    fflush(file);
+    while (fgets(line, COMMAND_LINE_SIZE, file))
     {
+        line[strlen(line)-1] = '\0';
         fflush(file);
-        while (fgets(line, COMMAND_LINE_SIZE, file))
+        if (DEBUGN3)
         {
-            line[strlen(line) - 1] = '\0';
-
-            if (DEBUGN3)
-            {
-                fprintf(stderr, GRIS_T "[Internal_source()→ LINE: %s]\n" RESET, line);
-            }
-
-            execute_line(line);
-            fflush(file);
+            fprintf(stderr, GRIS_T "[Internal_source()→ LINE: %s]\n" RESET, line);
         }
-
-        fclose(file);
+        execute_line(line);
     }
-    return SUCCESS;
+    fclose(file);
+    return SUCCESS;  
 }
 
 int internal_jobs(char **args)
