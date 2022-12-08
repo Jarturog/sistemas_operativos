@@ -101,31 +101,23 @@ void imprimir_prompt()
 int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
-    char *line_inalterada; // paso extra ya que parse_args altera line
+    char *line_inalterada[strlen(line)+1]; // paso extra ya que parse_args altera line
     strcpy(line_inalterada, line);
     // fragmenta line en args
     if(!parse_args(args, line)) // si no hay tokens
     { 
         return SUCCESS;
     } 
-    printf("\nparse args");
-    fflush(stdout);
     // comprueba si es un comando interno
     if(check_internal(args))
     {
         return SUCCESS;
     }
-    printf("\ncheck internal");
-    fflush(stdout);
     //Si no es un comando interno se crea un hilo para ejecutar el comando
     pid_t pid = fork();
     int status;
-    printf("\nfork");
-    fflush(stdout);
     if (pid == 0) //Proceso hijo
     {
-        printf("\npid 0");
-    fflush(stdout);
         if (DEBUGN3)
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
@@ -136,8 +128,6 @@ int execute_line(char *line)
     }
     else if (pid > 0) //Proceso padre
     {
-        printf("\npid mayor que 0");
-    fflush(stdout);
         if (DEBUGN3)
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
