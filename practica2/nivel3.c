@@ -125,7 +125,6 @@ int execute_line(char *line)
         }
         execvp(args[0], args); // si sigue la ejecución es por un error
         fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
-        return FAILURE;
         exit(FAILURE);
     }
     else if (pid > 0) //Proceso padre
