@@ -183,11 +183,6 @@ int internal_cd(char **args)
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] && args[1][0] == 46) // si hay ..
     {
-        /*if (strcmp(cwd, home)) // si ya se está en el directorio HOME no se puede subir más
-        {
-            perror("internal_cd() error, access denied into a folder above HOME");
-            return FAILURE;
-        }*/
         do // vuelve atrás una carpeta
         {
             cwd[strlen(cwd) - 1] = '\0';
