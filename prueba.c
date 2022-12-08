@@ -2,9 +2,9 @@
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define N_JOBS 64
-#define DEBUGN1 -1
-#define DEBUGN2 -1
-#define DEBUGN3 1
+#define DEBUGN1 0
+#define DEBUGN2 0
+#define DEBUGN3 -1
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
@@ -101,7 +101,8 @@ void imprimir_prompt()
 int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
-    char *line_inalterada[strlen(line)+1]; // paso extra ya que parse_args altera line
+    char line_inalterada[strlen(line)+1]; // paso extra ya que parse_args altera line
+    line_inalterada[strlen(line)-1] = '\0'; // me deshago del salto de línea
     strcpy(line_inalterada, line);
     // fragmenta line en args
     if(!parse_args(args, line)) // si no hay tokens
@@ -123,7 +124,8 @@ int execute_line(char *line)
             fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
         }
         execvp(args[0], args); // si sigue la ejecución es por un error
-        perror("No se encontró la orden");
+        fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
+        return FAILURE;
         exit(FAILURE);
     }
     else if (pid > 0) //Proceso padre
@@ -263,11 +265,6 @@ int internal_cd(char **args)
     // comprobación de puntos para ir a una carpeta superior en los argumentos
     while (args[1][0] == args[1][1] && args[1][0] == 46) // si hay ..
     {
-        /*if (strcmp(cwd, home)) // si ya se está en el directorio HOME no se puede subir más
-        {
-            perror("internal_cd() error, access denied into a folder above HOME");
-            return FAILURE;
-        }*/
         do // vuelve atrás una carpeta
         {
             cwd[strlen(cwd) - 1] = '\0';
@@ -386,7 +383,7 @@ int internal_source(char **args)
     }
     if (!(file = fopen(args[1], "r")))
     {
-        perror(ROJO_T "fopen() error");
+        perror(ROJO_T "fopen");
         return FAILURE;
     }
     fflush(file);
