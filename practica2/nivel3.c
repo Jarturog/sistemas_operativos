@@ -1,10 +1,3 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
-#include "colores.h"
-#include <sys/wait.h>
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
@@ -15,6 +8,14 @@
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
+#include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+#include "colores.h"
+#include <sys/wait.h>
+
 static char mi_shell[COMMAND_LINE_SIZE];
 
 // declaraciones de funciones
