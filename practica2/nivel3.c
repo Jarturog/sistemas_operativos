@@ -84,7 +84,7 @@ char *read_line(char *line)
     } // si es NULL
     if (feof(stdin))
     { // CTRL+D
-        printf("\radiós");
+        printf("\radiós\n");
         exit(0);
     }
     return NULL;
