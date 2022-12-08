@@ -84,7 +84,7 @@ char *read_line(char *line)
     } // si es NULL
     if (feof(stdin))
     { // CTRL+D
-        printf("\radiós\n");
+        printf("\nadiós\n");
         exit(0);
     }
     return NULL;
@@ -102,8 +102,8 @@ int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
     char line_inalterada[strlen(line)+1]; // paso extra ya que parse_args altera line
-    line_inalterada[strlen(line)-1] = '\0'; // me deshago del salto de línea
     strcpy(line_inalterada, line);
+    line_inalterada[strlen(line)-1] = '\0'; // me deshago del salto de línea
     // fragmenta line en args
     if(!parse_args(args, line)) // si no hay tokens
     { 
