@@ -510,7 +510,7 @@ void ctrlz(int signum)
     { // si hay un proceso en primer plano
         if (jobs_list[0].pid != getppid())
         {                                              // Si el proceso en foreground NO es el mini shell entonces
-            signal(SIGTSTP, ctrlz);                    // enviala señal SIGTERM
+            signal(SIGTSTP, ctrlz);                    // enviala señal SIGTSTP
             printf(stderr, GRIS_T "proceso abortado"); // notificarlo por pantalla
 
             //*************************************************
