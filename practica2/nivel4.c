@@ -172,11 +172,11 @@ int parse_args(char **args, char *line)
   }
   if (args[i] != NULL && args[i][0] == '#')
   {
+    args[i] = NULL;
     if (DEBUGN1)
     {
-      fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
+      fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: %s]\n" RESET, i, args[i]);
     }
-    args[i] = NULL;
   }
   // resto de tokens
   while (args[i] != NULL && i < ARGS_SIZE - 1)
@@ -189,11 +189,11 @@ int parse_args(char **args, char *line)
     }
     if (args[i] != NULL && args[i][0] == '#')
     {
+      args[i] = NULL;
       if (DEBUGN1)
       {
-        fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
+        fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: %s]\n" RESET, i, args[i]);
       }
-      args[i] = NULL;
     }
   }
   args[ARGS_SIZE - 1] = NULL; // el último token siempre ha de ser NULL
@@ -438,38 +438,37 @@ int internal_bg(char **args)
   return 1;
 }
 void reaper(int signum)
-{                            // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
-    signal(SIGCHLD, reaper); // asignamos de nuevo a reaper como manejador de la señal
-    pid_t ended;
-    printf("reaper()→ Recibida señal %d.\n", signum); // la señal 17 es SIGCHILD
-    int status;
-    while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
-    {
-        // si ended es el pid del hijo en primer plano entonces resetea jobs_list[0]
+{                          // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
+  signal(SIGCHLD, reaper); // asignamos de nuevo a reaper como manejador de la señal
+  pid_t ended;
+  int status;
+  while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
+  {
+    // si ended es el pid del hijo en primer plano entonces resetea jobs_list[0]
 
-        printf("reaper()→ Enterrado proceso con PID %d.", ended);
-        jobs_list_reset(0);
-    }
+    printf("reaper()→ Enterrado proceso con PID %d.", ended);
+    jobs_list_reset(0);
+  }
 }
 
 void ctrlc(int signum)
-{                          // Manejador propio para la señal SIGINT (Ctrl+C).
-    signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
+{                        // Manejador propio para la señal SIGINT (Ctrl+C).
+  signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
 
-    if (jobs_list[0].pid > 0)
-    { // si hay un proceso en primer plano
-        if (jobs_list[0].pid != getppid())
-        {                                              // Si el proceso en foreground NO es el mini shell entonces
-            signal(SIGTERM, ctrlc);                    // enviala señal SIGTERM
-            printf(stderr, GRIS_T "proceso abortado"); // notificarlo por pantalla
-        }
-        else
-        {
-            fprintf(stderr, GRIS_T "\n Señal SIGTERM no enviada debido a que el proceso en foreground es el shell \n");
-        }
+  if (jobs_list[0].pid > 0)
+  { // si hay un proceso en primer plano
+    if (jobs_list[0].pid != getppid())
+    {                                            // Si el proceso en foreground NO es el mini shell entonces
+      signal(SIGTERM, ctrlc);                    // enviala señal SIGTERM
+      printf(stderr, GRIS_T "proceso abortado"); // notificarlo por pantalla
     }
     else
     {
-        fprintf(stderr, GRIS_T "\n Señal SIGTERM no enviada debido a que no hay proceso en foreground \n");
+      fprintf(stderr, GRIS_T "\n Señal SIGTERM no enviada debido a que el proceso en foreground es el shell \n");
     }
+  }
+  else
+  {
+    fprintf(stderr, GRIS_T "\n Señal SIGTERM no enviada debido a que no hay proceso en foreground \n");
+  }
 }
