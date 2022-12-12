@@ -131,7 +131,7 @@ int execute_line(char *line)
     {
         if (DEBUGN3)
         {
-            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
+            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getpid(), mi_shell);
         }
         jobs_list_update(0, pid, 'E', line_inalterada);
         if(wait(&status) == -1)

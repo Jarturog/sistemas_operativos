@@ -94,10 +94,24 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         if (DEBUGN4)
         {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n", ended, jobs_list[0].cmd, WEXITSTATUS(status));
+            sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
         jobs_list_reset(0);
+        if (kill(ended, signum) == 0) // Enviamos la señal SIGINT al proceso
+        {
+            if (DEBUGN4)
+            {
+                char mensaje[1200];
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s)  finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, signum);
+                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+            }
+        }
+        else
+        {
+            perror("kill");
+            exit(FAILURE);
+        }
     }
 }
 
@@ -108,7 +122,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
     if (DEBUGN4)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "\n[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n", getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        sprintf(mensaje, GRIS_T "\n[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 
@@ -118,26 +132,26 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
 
-            //signal(SIGTERM, ctrlc); // envía la señal SIGTERM
-             signal(SIGTERM, reaper); //--------------------------------------------------------
+            signal(SIGTERM, ctrlc); // envía la señal SIGTERM
+            // signal(SIGTERM, reaper); //--------------------------------------------------------
             if (DEBUGN4)
             {
                 char mensaje[1200];
-                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n", jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
+                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
         }
         else if (DEBUGN4)
         {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n", getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
     else if (DEBUGN4)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que no hay proceso en foreground]\n", getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
@@ -200,7 +214,7 @@ int execute_line(char *line)
     {
         if (DEBUGN3 || DEBUGN4) // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece
         {
-            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
+            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getpid(), mi_shell);
         }
         jobs_list_update(0, pid, 'E', line_inalterada);
         signal(SIGINT, ctrlc); // Asocia el manejador ctrlc a la señal SIGINT
