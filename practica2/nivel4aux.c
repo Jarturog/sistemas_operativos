@@ -96,7 +96,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
     signal(SIGCHLD, reaper); // después de la asignación que hemos hecho
     pid_t ended;
     int status;
-    while ((ended = waitpid(-1, &status, WNOHANG)) > 0) // --------------------------------------------------------------------------------------------------------------------------------------
+    while ((ended = waitpid(-1, &status, WNOHANG)) > 0) 
     {
         if (DEBUGN4) // Enviamos la señal SIGINT al proceso
         {
@@ -111,6 +111,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
+        senyal = SIGCHLD; // --- solución auxiliar por no encontrar una mejor ----------------------------------------------------------------
         jobs_list_finalize(0);
     }
 }
@@ -143,7 +144,6 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
                 perror("kill");
                 exit(FAILURE);
             }
-            senyal = 0;
         }
         else if (DEBUGN4)
         {
