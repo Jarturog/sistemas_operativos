@@ -90,25 +90,18 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
     int status;
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) // --------------------------------------------------------------------------------------------------------------------------------------
     {
-        // si ended es el pid del hijo en primer plano entonces resetea jobs_list[0]
-
-        if (signum == SIGINT) // Enviamos la señal SIGINT al proceso
+        if (DEBUGN4) // Enviamos la señal SIGINT al proceso
         {
-            if (DEBUGN4)
+            char mensaje[1200];
+            if (signum != 0)
             {
-                char mensaje[1200];
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s)  finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, signum);
-                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, signum);
             }
-        }
-        else
-        {
-            if (DEBUGN4)
+            else
             {
-                char mensaje[1200];
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
-                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
         jobs_list_reset(0);
     }
@@ -130,9 +123,6 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 
         if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
-
-            // signal(SIGTERM, ctrlc); // envía la señal SIGTERM
-            // signal(SIGTERM, reaper); //--------------------------------------------------------
             if (DEBUGN4)
             {
                 char mensaje[1200];
