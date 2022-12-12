@@ -91,14 +91,8 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) // --------------------------------------------------------------------------------------------------------------------------------------
     {
         // si ended es el pid del hijo en primer plano entonces resetea jobs_list[0]
-        if (DEBUGN4)
-        {
-            char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
-            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-        }
-        jobs_list_reset(0);
-        if (kill(ended, signum) == 0) // Enviamos la señal SIGINT al proceso
+
+        if (signum == SIGINT) // Enviamos la señal SIGINT al proceso
         {
             if (DEBUGN4)
             {
@@ -109,9 +103,14 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         }
         else
         {
-            perror("kill");
-            exit(FAILURE);
+            if (DEBUGN4)
+            {
+                char mensaje[1200];
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+            }
         }
+        jobs_list_reset(0);
     }
 }
 
@@ -132,13 +131,18 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
 
-            signal(SIGTERM, ctrlc); // envía la señal SIGTERM
+            // signal(SIGTERM, ctrlc); // envía la señal SIGTERM
             // signal(SIGTERM, reaper); //--------------------------------------------------------
             if (DEBUGN4)
             {
                 char mensaje[1200];
                 sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+            }
+            if (kill(jobs_list[0].pid, SIGTERM) != 0) // Enviamos la señal SIGTERM al proceso, y si ha habido error entra en el if
+            {
+                perror("kill");
+                exit(FAILURE);
             }
         }
         else if (DEBUGN4)
