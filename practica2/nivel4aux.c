@@ -93,13 +93,13 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         if (DEBUGN4) // Enviamos la señal SIGINT al proceso
         {
             char mensaje[1200];
-            if (signum != 0)
-            {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, signum);
-            }
-            else
+            if (signum == SIGCHLD) // si no ha sido abortado
             {
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+            }
+            else // si ha sido abortado
+            {
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, signum);
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
