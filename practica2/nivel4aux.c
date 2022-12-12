@@ -97,11 +97,6 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         }
         jobs_list_reset(0);
     }
-
-    if (DEBUGN3)
-    {
-        fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), estado: %d]\n" RESET, pid, line_inalterada, status);
-    }
 }
 
 void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
@@ -109,11 +104,11 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
     signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
 
     if (jobs_list[0].pid > 0)
-    { // si hay un proceso en primer plano
+    {                                      // si hay un proceso en primer plano
         if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
-        {                                               // Si el proceso en foreground NO es el mini shell entonces
-            signal(SIGTERM, ctrlc);                     // enviala señal SIGTERM
-            perror("proceso abortado"); // notificarlo por pantalla
+        {                                  // Si el proceso en foreground NO es el mini shell entonces
+            signal(SIGTERM, ctrlc);        // enviala señal SIGTERM
+            perror("proceso abortado");    // notificarlo por pantalla
         }
         else
         {
@@ -198,6 +193,10 @@ int execute_line(char *line)
     else // Error
     {
         perror("Error tratando comando externo con fork()");
+    }
+    if (DEBUGN3)
+    {
+        fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit()]\n" RESET, pid, line_inalterada); // revisar guarrada ---------------------------------
     }
     return SUCCESS;
 }
