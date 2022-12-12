@@ -3,11 +3,12 @@
 #define ARGS_SIZE 64
 #define DEBUGN1 -1
 #define PROMPT '$'
+#include "colores.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "colores.h"
+
 // declaraciones de funciones
 char *read_line(char *line);
 void imprimir_prompt();

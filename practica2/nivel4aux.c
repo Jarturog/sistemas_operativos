@@ -1,8 +1,11 @@
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
+#define N_JOBS 64
 #define DEBUGN1 0
-#define DEBUGN2 -1
+#define DEBUGN2 0
+#define DEBUGN3 0
+#define DEBUGN4 -1
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
@@ -12,6 +15,10 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <signal.h>
+
+static char mi_shell[COMMAND_LINE_SIZE];
 
 // declaraciones de funciones
 char *read_line(char *line);
@@ -25,10 +32,46 @@ int internal_source(char **args);
 int internal_jobs(char **args);
 int internal_fg(char **args);
 int internal_bg(char **args);
+void jobs_list_reset(int idx);
+void jobs_list_update(int idx, pid_t pid, char status, char cmd[]);
+void reaper(int signum);
+void ctrlc(int signum);
 
-int main()
+// Lista de tareas
+struct info_job
 {
+    pid_t pid;
+    char status;                 // ‘N’, ’E’, ‘D’, ‘F’ (‘N’: ninguno, ‘E’: Ejecutándose y ‘D’: Detenido, ‘F’: Finalizado)
+    char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
+};
+
+static struct info_job jobs_list[N_JOBS];
+
+// Funcion para inicializar jobs_List
+void jobs_list_reset(int idx)
+{
+    jobs_list[idx].pid = 0;
+    jobs_list[idx].status = 'N';
+    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
+}
+
+void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
+{
+    jobs_list[idx].pid = pid;
+    jobs_list[idx].status = status;
+    strcpy(jobs_list[idx].cmd, cmd);
+}
+
+int main(int argc, char *argv[])
+{
+    signal(SIGCHLD, reaper); // llamada al enterrador de zombies cuando un hijo acaba (señal SIGCHLD)
+    signal(SIGINT, ctrlc);   // SIGINT es la señal de interrupción que produce Ctrl+C
+    // Se inicializan la línea de comandos, el jobs_list y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
+    jobs_list_reset(0);
+    strcpy(mi_shell, argv[0]);
+
+    // Se inicia el bucle para leer los comandos
     while (1)
     {
         if (read_line(line) != NULL)
@@ -40,21 +83,67 @@ int main()
     return 0;
 }
 
+void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
+{                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada
+    signal(SIGCHLD, reaper); // después de la asignación que hemos hecho
+    pid_t ended;
+    int status;
+    while ((ended = waitpid(-1, &status, WNOHANG)) > 0) // --------------------------------------------------------------------------------------------------------------------------------------
+    {
+        // si ended es el pid del hijo en primer plano entonces resetea jobs_list[0]
+        if (DEBUGN4)
+        {
+            printf("reaper()→ Enterrado proceso con PID %d.", ended);
+        }
+        jobs_list_reset(0);
+    }
+
+    if (DEBUGN3)
+    {
+        fprintf(stderr, GRIS_T "[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), estado: %d]\n" RESET, pid, line_inalterada, status);
+    }
+}
+
+void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
+{
+    signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
+
+    if (jobs_list[0].pid > 0)
+    { // si hay un proceso en primer plano
+        if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
+        {                                               // Si el proceso en foreground NO es el mini shell entonces
+            signal(SIGTERM, ctrlc);                     // enviala señal SIGTERM
+            perror("proceso abortado"); // notificarlo por pantalla
+        }
+        else
+        {
+            perror("Señal SIGTERM no enviada debido a que el proceso en foreground es el shell\n");
+            fflush(stdout);
+        }
+    }
+    else
+    {
+        perror("Señal SIGTERM no enviada debido a que no hay proceso en foreground\n");
+        fflush(stdout);
+    }
+}
+
 char *read_line(char *line)
 {
     imprimir_prompt();
-    if (fgets(line, COMMAND_LINE_SIZE, stdin) != NULL)
+    if (fgets(line, COMMAND_LINE_SIZE, stdin))
     {
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
         return line;
     } // si es NULL
-    if (feof(stdin) )
+    if (feof(stdin))
     { // CTRL+D
         printf("\nadiós\n");
         exit(0);
     }
     return NULL;
 }
+
 void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
@@ -62,17 +151,57 @@ void imprimir_prompt()
     printf(MAGENTA_T "%s" RESET ":" CYAN_T "%s " VERDE_T "%c " RESET, getenv("USER"), cwd, PROMPT);
     fflush(stdout);
 }
+
 int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
-    // fragmenta line en tokens
-    if(parse_args(args, line)) // si hay tokens
-    { 
-        // comprueba si es un comando interno
-        check_internal(args);
+    char line_inalterada[strlen(line) + 1]; // paso extra ya que parse_args altera line
+    strcpy(line_inalterada, line);
+    line_inalterada[strlen(line) - 1] = '\0'; // me deshago del salto de línea
+    // fragmenta line en args
+    if (!parse_args(args, line)) // si no hay tokens
+    {
+        return SUCCESS;
     }
-    return 0;
+    // comprueba si es un comando interno
+    if (check_internal(args))
+    {
+        return SUCCESS;
+    }
+    // Si no es un comando interno se crea un hilo para ejecutar el comando
+    pid_t pid = fork();
+    if (pid == 0) // Proceso hijo
+    {
+        signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
+        signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
+        if (DEBUGN3)
+        {
+            fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
+        }
+        execvp(args[0], args); // si sigue la ejecución es por un error
+        fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
+        exit(FAILURE);
+    }
+    else if (pid > 0) // Proceso padre
+    {
+        if (DEBUGN3)
+        {
+            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
+        }
+        jobs_list_update(0, pid, 'E', line_inalterada);
+        signal(SIGINT, ctrlc); // Asocia el manejador ctrlc a la señal SIGINT
+        while (jobs_list[0].pid > 0)
+        { // cuando finaliza el proceso en primer plano sale del while
+            pause();
+        }
+    }
+    else // Error
+    {
+        perror("Error tratando comando externo con fork()");
+    }
+    return SUCCESS;
 }
+
 int parse_args(char **args, char *line)
 {
     const char delim[4] = "\t\n\r "; // delimitadores
@@ -83,14 +212,14 @@ int parse_args(char **args, char *line)
     {
         fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
     }
-    if(args[i] != NULL && args[i][0] == '#')
+    if (args[i] != NULL && args[i][0] == '#')
     {
+        args[i] = NULL;
         if (DEBUGN1)
         {
-            fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
+            fprintf(stderr, GRIS_T "[parse_args()->token %d corregido: %s]\n" RESET, i, args[i]);
         }
-        args[i] = NULL;
-    }  
+    }
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
     {
@@ -100,18 +229,19 @@ int parse_args(char **args, char *line)
         {
             fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
         }
-        if(args[i] != NULL && args[i][0] == '#')
+        if (args[i] != NULL && args[i][0] == '#')
         {
+            args[i] = NULL;
             if (DEBUGN1)
             {
-                fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
+                fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: %s]\n" RESET, i, args[i]);
             }
-            args[i] = NULL;
         }
     }
     args[ARGS_SIZE - 1] = NULL; // el último token siempre ha de ser NULL
     return i;
 }
+
 int check_internal(char **args)
 {
     if (strcmp(args[0], "exit") == 0)
@@ -149,9 +279,10 @@ int check_internal(char **args)
         internal_bg(args);
         return 1;
     }
-    
+
     return 0;
 }
+
 int internal_cd(char **args)
 {
     char cwd[COMMAND_LINE_SIZE]; // actual directory
@@ -188,19 +319,19 @@ int internal_cd(char **args)
         {
             cwd[strlen(cwd) - 1] = '\0';
         } while (cwd[strlen(cwd) - 1] != 47); // 47 es /
-        cwd[strlen(cwd) - 1] = '\0'; // elimino la barra sobrante
-        args[1]++; // quito los dos puntos del string
-        args[1]++; 
+        cwd[strlen(cwd) - 1] = '\0';          // elimino la barra sobrante
+        args[1]++;                            // quito los dos puntos del string
+        args[1]++;
         if (args[1][0] == 47) // si es una barra es que hay dos puntos más
         {
             args[1]++; // quito la barra
         }
     }
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
-    char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
-    memset(argsToCwd,0,COMMAND_LINE_SIZE * ARGS_SIZE); // tengo que rellenar la memoria que ocupa de '\0' porque sino 
-                                                       // en cada llamada se mantiene el valor anterior de argsToCwd
-    int i = 1; // índice del argumento que se está comprobando
+    char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE];       // como máximo el conjunto de los argumentos tendrá este tamaño
+    memset(argsToCwd, 0, COMMAND_LINE_SIZE * ARGS_SIZE); // tengo que rellenar la memoria que ocupa de '\0' porque sino
+                                                         // en cada llamada se mantiene el valor anterior de argsToCwd
+    int i = 1;                                           // índice del argumento que se está comprobando
     while (args[i] != NULL && args[i][0] != '\0')
     {
         strcat(argsToCwd, "/");
@@ -211,18 +342,18 @@ int internal_cd(char **args)
             i++;
         }
         if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
-        { 
+        {
             int tipoComa = args[i][0];
             args[i]++; // paso por encima de la comilla
-            printf("\n%s\n%c",args[i],tipoComa);
+            printf("\n%s\n%c", args[i], tipoComa);
             fflush(stdout);
-            while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i])-1] == 1 || args[i][strlen(args[i])-1] == 6))
+            while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i]) - 1] == 1 || args[i][strlen(args[i]) - 1] == 6))
             {
                 strcat(argsToCwd, args[i]);
                 strcat(argsToCwd, " ");
                 i++;
             }
-            if(args[i][strlen(args[i])-1] != tipoComa) // si no es " " o ' '
+            if (args[i][strlen(args[i]) - 1] != tipoComa) // si no es " " o ' '
             {
                 perror("Error en internal_cd() por comillas diferentes");
                 return FAILURE;
@@ -245,15 +376,16 @@ int internal_cd(char **args)
     }
     return SUCCESS;
 }
+
 int internal_export(char **args)
 {
-    if(args[1] == NULL)
+    if (args[1] == NULL)
     {
         fprintf(stderr, ROJO_T "Error de sintaxis. Uso: export Nombre=Valor\n" RESET);
         return FAILURE;
     }
     char *valor;
-    if(!(valor = strchr(args[1], 61))) // 61 es =
+    if (!(valor = strchr(args[1], 61))) // 61 es =
     {
         if (DEBUGN2)
         {
@@ -274,11 +406,13 @@ int internal_export(char **args)
         return FAILURE;
     }
     char *vInicial;
-    if(!(vInicial = getenv(nombre))){
+    if (!(vInicial = getenv(nombre)))
+    {
         perror("getenv() error");
         return FAILURE;
     }
-    if(setenv(nombre,valor,1)){
+    if (setenv(nombre, valor, 1))
+    {
         perror("setenv() error");
         return FAILURE;
     }
@@ -288,14 +422,37 @@ int internal_export(char **args)
     }
     return SUCCESS;
 }
+
 int internal_source(char **args)
 {
-    if (DEBUGN1)
+    char line[COMMAND_LINE_SIZE];
+    FILE *file;
+
+    if (!args[1])
     {
-        fprintf(stderr, GRIS_T "[internal_source()→Esta función ejecutará un fichero de líneas de comandos]\n" RESET);
+        fprintf(stderr, ROJO_T "Error de sintaxis. Uso: source <nombre_fichero>\n" RESET);
+        return FAILURE;
     }
-    return 1;
+    if (!(file = fopen(args[1], "r")))
+    {
+        perror(ROJO_T "fopen");
+        return FAILURE;
+    }
+    fflush(file);
+    while (fgets(line, COMMAND_LINE_SIZE, file))
+    {
+        line[strlen(line) - 1] = '\0';
+        fflush(file);
+        if (DEBUGN3)
+        {
+            fprintf(stderr, GRIS_T "[Internal_source()→ LINE: %s]\n" RESET, line);
+        }
+        execute_line(line);
+    }
+    fclose(file);
+    return SUCCESS;
 }
+
 int internal_jobs(char **args)
 {
     if (DEBUGN1)
@@ -304,6 +461,7 @@ int internal_jobs(char **args)
     }
     return 1;
 }
+
 int internal_fg(char **args)
 {
     if (DEBUGN1)
@@ -312,6 +470,7 @@ int internal_fg(char **args)
     }
     return 1;
 }
+
 int internal_bg(char **args)
 {
     if (DEBUGN1)

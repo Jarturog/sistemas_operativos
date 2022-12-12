@@ -8,12 +8,12 @@
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
+#include "colores.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include "colores.h"
 #include <sys/wait.h>
 
 static char mi_shell[COMMAND_LINE_SIZE];

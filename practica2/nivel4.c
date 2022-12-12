@@ -1,21 +1,22 @@
-
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define N_JOBS 64
 #define DEBUGN1 0
 #define DEBUGN2 0
+#define DEBUGN3 0
 #define DEBUGN3 -1
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
+#include "colores.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include "colores.h"
 #include <sys/wait.h>
+#include <signal.h>
 
 static char mi_shell[COMMAND_LINE_SIZE];
 
@@ -439,7 +440,8 @@ int internal_bg(char **args)
 }
 void reaper(int signum)
 {                          // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
-  signal(SIGCHLD, reaper); // asignamos de nuevo a reaper como manejador de la señal
+  signal(SIGCHLD, reaper); // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada
+                           // después de la asignación que hemos hecho
   pid_t ended;
   int status;
   while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
@@ -458,9 +460,9 @@ void ctrlc(int signum)
   if (jobs_list[0].pid > 0)
   { // si hay un proceso en primer plano
     if (jobs_list[0].pid != getppid())
-    {                                            // Si el proceso en foreground NO es el mini shell entonces
-      signal(SIGTERM, ctrlc);                    // enviala señal SIGTERM
-      printf(stderr, GRIS_T "proceso abortado"); // notificarlo por pantalla
+    {                                             // Si el proceso en foreground NO es el mini shell entonces
+      signal(SIGTERM, ctrlc);                     // enviala señal SIGTERM
+      fprintf(stderr, GRIS_T "proceso abortado"); // notificarlo por pantalla
     }
     else
     {
