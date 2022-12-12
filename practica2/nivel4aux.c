@@ -94,7 +94,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         if (DEBUGN4)
         {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "\n[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n", ended, jobs_list[0].cmd, WEXITSTATUS(status));
+            sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n", ended, jobs_list[0].cmd, WEXITSTATUS(status));
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
         jobs_list_reset(0);
@@ -118,12 +118,12 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
 
-            signal(SIGTERM, ctrlc); // envía la señal SIGTERM
-            // signal(SIGTERM, reaper); //--------------------------------------------------------
+            //signal(SIGTERM, ctrlc); // envía la señal SIGTERM
+             signal(SIGTERM, reaper); //--------------------------------------------------------
             if (DEBUGN4)
             {
                 char mensaje[1200];
-                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n", jobs_list[0].pid, jobs_list[0].cmd, getppid(), mi_shell);
+                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n", jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
         }
