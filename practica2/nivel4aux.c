@@ -93,7 +93,9 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         // si ended es el pid del hijo en primer plano entonces resetea jobs_list[0]
         if (DEBUGN4)
         {
-            printf("reaper()→ Enterrado proceso con PID %d.", ended);
+            char mensaje[1200];
+            sprintf(mensaje, GRIS_T "\n[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n", ended, jobs_list[0].cmd, WEXITSTATUS(status));
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
         jobs_list_reset(0);
     }
@@ -117,6 +119,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         {                                  // Si el proceso en foreground NO es el mini shell entonces
 
             signal(SIGTERM, ctrlc); // envía la señal SIGTERM
+            // signal(SIGTERM, reaper); //--------------------------------------------------------
             if (DEBUGN4)
             {
                 char mensaje[1200];
@@ -185,7 +188,7 @@ int execute_line(char *line)
     {
         signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
         signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
-        if (DEBUGN3)
+        if (DEBUGN3 || DEBUGN4)   // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece (aparte de en el del nivel 3)
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
         }
@@ -195,7 +198,7 @@ int execute_line(char *line)
     }
     else if (pid > 0) // Proceso padre
     {
-        if (DEBUGN3)
+        if (DEBUGN3 || DEBUGN4) // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getppid(), mi_shell);
         }
