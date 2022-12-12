@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
 void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
 {                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada
     signal(SIGCHLD, reaper); // después de la asignación que hemos hecho
+    signal(SIGTERM, reaper);
     pid_t ended;
     int status;
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) // --------------------------------------------------------------------------------------------------------------------------------------
@@ -127,7 +128,6 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 
     if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
     {
-
         if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
             if (DEBUGN4)
@@ -136,7 +136,6 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
                 sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
-            signal(SIGTERM, reaper);
             if (kill(jobs_list[0].pid, SIGTERM) != 0) // Enviamos la señal SIGTERM al proceso, y si ha habido error entra en el if
             {
                 perror("kill");
@@ -203,7 +202,8 @@ int execute_line(char *line)
     if (pid == 0) // Proceso hijo
     {
         signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
-        signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
+        signal(SIGINT, SIG_IGN); // ignorará la señal SIGINT
+        signal(SIGTERM, reaper); // si finaliza acude al reaper
         if (DEBUGN3 || DEBUGN4)   // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece (aparte de en el del nivel 3)
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
