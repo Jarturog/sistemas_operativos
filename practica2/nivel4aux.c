@@ -55,6 +55,13 @@ void jobs_list_reset(int idx)
     memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
 }
 
+void jobs_list_finalize(int idx)
+{
+    jobs_list[idx].pid = 0;
+    jobs_list[idx].status = 'F';
+    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
+}
+
 void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
 {
     jobs_list[idx].pid = pid;
@@ -103,7 +110,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
-        jobs_list_reset(0);
+        jobs_list_finalize(0);
     }
 }
 
@@ -129,6 +136,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
                 sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
+            signal(SIGTERM, reaper);
             if (kill(jobs_list[0].pid, SIGTERM) != 0) // Enviamos la señal SIGTERM al proceso, y si ha habido error entra en el if
             {
                 perror("kill");
