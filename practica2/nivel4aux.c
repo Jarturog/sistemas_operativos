@@ -103,23 +103,39 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 {
     signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
 
-    if (jobs_list[0].pid > 0)
-    {                                      // si hay un proceso en primer plano
+    if (DEBUGN4)
+    {
+        char mensaje[1200];
+        sprintf(mensaje, "[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n", getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+    }
+
+    if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
+    {
+
         if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
-            signal(SIGTERM, ctrlc);        // enviala señal SIGTERM
-            perror("proceso abortado");    // notificarlo por pantalla
+
+            signal(SIGTERM, ctrlc); // envía la señal SIGTERM
+            if (DEBUGN4)
+            {
+                char mensaje[1200];
+                sprintf(mensaje, "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n", jobs_list[0].pid, jobs_list[0].cmd, getppid(), mi_shell);
+                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+            }
         }
-        else
+        else if (DEBUGN4)
         {
-            perror("Señal SIGTERM no enviada debido a que el proceso en foreground es el shell\n");
-            fflush(stdout);
+            char mensaje[1200];
+            sprintf(mensaje, "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n", getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
-    else
+    else if (DEBUGN4)
     {
-        perror("Señal SIGTERM no enviada debido a que no hay proceso en foreground\n");
-        fflush(stdout);
+        char mensaje[1200];
+        sprintf(mensaje, "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que no hay proceso en foreground]\n", getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
 
