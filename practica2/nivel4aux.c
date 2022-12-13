@@ -101,19 +101,19 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         if (DEBUGN4) // Enviamos la señal SIGINT al proceso
         {
             char mensaje[1200];
-            if (senyal == SIGCHLD) // si no ha sido abortado
+            if (senyal) // si no ha sido abortado
             {
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
             }
             else // si ha sido abortado
             {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, senyal);
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
-        senyal = SIGCHLD; // --- solución auxiliar por no encontrar una mejor ----------------------------------------------------------------
         jobs_list_finalize(0);
     }
+    senyal = 0;
 }
 
 void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
@@ -138,12 +138,12 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
                 sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
-            senyal = SIGTERM; // --- solución auxiliar por no encontrar una mejor ----------------------------------------------------------------
             if (kill(jobs_list[0].pid, SIGTERM) != 0) // Enviamos la señal SIGTERM al proceso, y si ha habido error entra en el if
             {
                 perror("kill");
                 exit(FAILURE);
             }
+            senyal = -1; // --- solución auxiliar por no encontrar una mejor ----------------------------------------------------------------
         }
         else if (DEBUGN4)
         {
