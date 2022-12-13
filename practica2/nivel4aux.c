@@ -19,7 +19,7 @@
 #include <signal.h>
 
 static char mi_shell[COMMAND_LINE_SIZE];
-static int senyal;// --- auxiliar por no encontar mejor solución ---
+static int matado; // booleano que indica si el proceso ha sido matado o ha finalizado normalmente // --- auxiliar por no encontar mejor solución ---
 
 // declaraciones de funciones
 char *read_line(char *line);
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
     char line[COMMAND_LINE_SIZE];
     jobs_list_reset(0);
     strcpy(mi_shell, argv[0]);
-
+    matado = 0;
     // Se inicia el bucle para leer los comandos
     while (1)
     {
@@ -101,7 +101,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         if (DEBUGN4) // Enviamos la señal SIGINT al proceso
         {
             char mensaje[1200];
-            if (senyal) // si no ha sido abortado
+            if (!matado) // si no ha sido abortado
             {
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
             }
@@ -111,9 +111,9 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
+        matado = 0; // reinicio matado a 0 
         jobs_list_finalize(0);
     }
-    senyal = 0;
 }
 
 void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
@@ -129,8 +129,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 
     if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
     {
-        if (strcmp(jobs_list[0].cmd, mi_shell) != 0)
-        //if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
+        if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
             if (DEBUGN4)
             {
@@ -143,7 +142,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
                 perror("kill");
                 exit(FAILURE);
             }
-            senyal = -1; // --- solución auxiliar por no encontrar una mejor ----------------------------------------------------------------
+            matado = -1; // --- solución auxiliar por no encontrar una mejor ----------------------------------------------------------------
         }
         else if (DEBUGN4)
         {
