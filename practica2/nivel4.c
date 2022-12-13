@@ -5,7 +5,7 @@
 #define DEBUGN1 0
 #define DEBUGN2 0
 #define DEBUGN3 0
-#define DEBUGN3 -1
+#define DEBUGN4 -1
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
