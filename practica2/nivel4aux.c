@@ -129,7 +129,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 
     if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
     {
-        if (strcmp(jobs_list[0].cmd, mi_shell) == 0)
+        if (strcmp(jobs_list[0].cmd, mi_shell) != 0)
         //if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
             if (DEBUGN4)
