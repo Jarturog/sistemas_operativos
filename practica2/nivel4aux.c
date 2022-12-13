@@ -103,11 +103,11 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
             char mensaje[1200];
             if (senyal) // si no ha sido abortado
             {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
             }
             else // si ha sido abortado
             {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
@@ -129,7 +129,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 
     if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
     {
-        if (strcmp(jobs_list[0].cmd != mi_shell) == 0)
+        if (strcmp(jobs_list[0].cmd, mi_shell) == 0)
         //if (jobs_list[0].pid != getppid()) // ppdid() retorna el pid del mini shell
         {                                  // Si el proceso en foreground NO es el mini shell entonces
             if (DEBUGN4)
