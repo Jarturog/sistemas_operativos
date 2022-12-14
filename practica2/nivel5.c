@@ -117,7 +117,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
             {
                 jobs_list_find(ended);  // busca el PID del proceso en jobs_list[]
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM); //imprime la salida estandard que el proceso ha terminado
-                jobs_list_remove( jobs_list[0].cmd);  //elimina el proceso de jobs_list[]
+                jobs_list_remove( jobs_list[0].pid);  //elimina el proceso de jobs_list[]
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
@@ -544,11 +544,11 @@ void ctrlz(int signum)
         if (jobs_list[0].pid != getppid())
         {                                              // Si el proceso en foreground NO es el mini shell entonces
             signal(SIGTSTP, ctrlz);                    // enviala señal SIGTSTP
-            printf(stderr, GRIS_T "proceso abortado"); // notificarlo por pantalla
+            //fprintf(stderr, GRIS_T "proceso abortado"); // notificarlo por pantalla
             
             
              char status = 'D';/// Cambiar el status del proceso a ‘D’ (detenido).
-            jobs_list_add(jobs_list[0].pid,status,jobs_list[sizeof(jobs_list)].cmd);// Utilizar jobs_list_add() para incorporar el proceso a la tabla jobs_list[ ] por el final.
+            jobs_list_add(jobs_list[0].pid,status,n_pids);// Utilizar jobs_list_add() para incorporar el proceso a la tabla jobs_list[ ] por el final.
             jobs_list_reset(0);// Resetear los datos de jobs_list[0] ya que el proceso ha dejado de ejecutarse en foreground.
         }
         else
@@ -577,21 +577,22 @@ int jobs_list_add(pid_t pid, char status, char *cmd){
 if(n_pids != N_JOBS){
     jobs_list[n_pids].pid= pid;
 }
-
+ return 1;
 }
 int jobs_list_find(pid_t pid){
    
 for(int i=0; i<n_pids;i++){ //Busca en el array de trabajos el PID que recibe como argumento
-    if(jobs_list[i].cmd==pid){
+    if(jobs_list[i].pid==pid){
        return i;  // retorna la posición en él.
     }
 }
-
+ return 0;
 }
 int jobs_list_remove(int pos){
-pid_t ultimaPos = jobs_list[n_pids].cmd;
+pid_t ultimaPos = jobs_list[n_pids].pid;
 jobs_list[pos].pid= ultimaPos; //mueve el registro del último proceso de la lista a la posición del que eliminamos.
 n_pids--; //Decrementamos la variable global n_pids.
+return 1;
 }
 
 
