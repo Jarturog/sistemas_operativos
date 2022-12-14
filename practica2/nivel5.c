@@ -500,7 +500,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
     if (DEBUGN4 || DEBUGN5)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n[ctrlc()→ recibida señal %d (%s)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd, signum, signum);
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n[ctrlc()→ recibida señal %d (S)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd, signum, signum);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 
