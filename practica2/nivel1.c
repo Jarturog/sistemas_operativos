@@ -44,7 +44,7 @@ char *read_line(char *line)
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
         return line;
     } // si es NULL
-    if (feof(stdin) )
+    if (feof(stdin))
     { // CTRL+D
         printf("\nadiós\n");
         exit(0);
@@ -62,8 +62,8 @@ int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
     // fragmenta line en tokens
-    if(parse_args(args, line)) // si hay tokens
-    { 
+    if (parse_args(args, line)) // si hay tokens
+    {
         // comprueba si es un comando interno
         check_internal(args);
     }
@@ -79,14 +79,14 @@ int parse_args(char **args, char *line)
     {
         fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
     }
-    if(args[i] != NULL && args[i][0] == '#')
+    if (args[i] != NULL && args[i][0] == '#')
     {
         if (DEBUGN1)
         {
             fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
         }
         args[i] = NULL;
-    }  
+    }
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
     {
@@ -96,7 +96,7 @@ int parse_args(char **args, char *line)
         {
             fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
         }
-        if(args[i] != NULL && args[i][0] == '#')
+        if (args[i] != NULL && args[i][0] == '#')
         {
             if (DEBUGN1)
             {
@@ -145,7 +145,7 @@ int check_internal(char **args)
         internal_bg(args);
         return 1;
     }
-    
+
     return 0;
 }
 int internal_cd(char **args)

@@ -56,13 +56,6 @@ void jobs_list_reset(int idx)
     memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
 }
 
-void jobs_list_finalize(int idx)
-{
-    jobs_list[idx].pid = 0;
-    jobs_list[idx].status = 'F';
-    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
-}
-
 void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
 {
     jobs_list[idx].pid = pid;
@@ -89,74 +82,6 @@ int main(int argc, char *argv[])
     }
 
     return 0;
-}
-
-void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
-{                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada
-    signal(SIGCHLD, reaper); // después de la asignación que hemos hecho
-    pid_t ended;
-    int status;
-    while ((ended = waitpid(-1, &status, WNOHANG)) > 0) 
-    {
-        if (DEBUGN4) // Enviamos la señal SIGINT al proceso
-        {
-            char mensaje[1200];
-            if (!matado) // si no ha sido abortado
-            {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
-            }
-            else // si ha sido abortado
-            {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
-            }
-            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-        }
-        matado = 0; // reinicio matado a 0 
-        jobs_list_finalize(0);
-    }
-}
-
-void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
-{
-    signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
-
-    if (DEBUGN4)
-    {
-        char mensaje[1200];
-        sprintf(mensaje, GRIS_T "\n[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
-        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-    }
-
-    if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
-    {
-        if (strcmp(jobs_list[0].cmd, mi_shell) != 0) // Si el proceso en foreground NO es el mini shell entonces
-        {                                  
-            if (DEBUGN4)
-            {
-                char mensaje[1200];
-                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
-                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-            }
-            if (kill(jobs_list[0].pid, SIGTERM) != 0) // Enviamos la señal SIGTERM al proceso, y si ha habido error entra en el if
-            {
-                perror("kill");
-                exit(FAILURE);
-            }
-            matado = -1; // al asignar -1 indica que el proceso ha sido matado
-        }
-        else if (DEBUGN4)
-        {
-            char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
-            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-        }
-    }
-    else if (DEBUGN4)
-    {
-        char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
-        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-    }
 }
 
 char *read_line(char *line)
@@ -186,13 +111,13 @@ void imprimir_prompt()
 int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
-    char line_inalterada[strlen(line) + 1]; // paso extra ya que parse_args altera line
+    char line_inalterada[strlen(line) + 1]; // paso extra para imprimir el cmd ya que parse_args altera line
     strcpy(line_inalterada, line);
     line_inalterada[strlen(line) - 1] = '\0'; // me deshago del salto de línea
     // fragmenta line en args
     if (!parse_args(args, line)) // si no hay tokens
     {
-        return SUCCESS;
+        return FAILURE;
     }
     // comprueba si es un comando interno
     if (check_internal(args))
@@ -509,4 +434,72 @@ int internal_bg(char **args)
         fprintf(stderr, GRIS_T "[internal_bg()→Esta función reactivará un proceso detenido para que siga ejecutándose pero en segundo plano.]\n" RESET);
     }
     return 1;
+}
+
+void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
+{                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada
+    signal(SIGCHLD, reaper); // después de la asignación que hemos hecho
+    pid_t ended;
+    int status;
+    while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
+    {
+        if (DEBUGN4) // Enviamos la señal SIGINT al proceso
+        {
+            char mensaje[1200];
+            if (!matado) // si no ha sido abortado
+            {
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+            }
+            else // si ha sido abortado
+            {
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
+            }
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+        }
+        matado = 0; // reinicio matado a 0
+        jobs_list_reset(0);
+    }
+}
+
+void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
+{
+    signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
+
+    if (DEBUGN4)
+    {
+        char mensaje[1200];
+        sprintf(mensaje, GRIS_T "\n[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+    }
+
+    if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
+    {
+        if (strcmp(jobs_list[0].cmd, mi_shell) != 0) // Si el proceso en foreground NO es el mini shell entonces
+        {
+            if (DEBUGN4)
+            {
+                char mensaje[1200];
+                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
+                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+            }
+            if (kill(jobs_list[0].pid, SIGTERM) != 0) // Enviamos la señal SIGTERM al proceso, y si ha habido error entra en el if
+            {
+                perror("kill");
+                exit(FAILURE);
+            }
+            matado = -1; // al asignar -1 indica que el proceso ha sido matado
+        }
+        else if (DEBUGN4)
+        {
+            char mensaje[1200];
+            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+        }
+    }
+    else if (DEBUGN4)
+    {
+        char mensaje[1200];
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+    }
 }

@@ -48,7 +48,7 @@ char *read_line(char *line)
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
         return line;
     } // si es NULL
-    if (feof(stdin) )
+    if (feof(stdin))
     { // CTRL+D
         printf("\nadiós\n");
         exit(0);
@@ -66,8 +66,8 @@ int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
     // fragmenta line en tokens
-    if(parse_args(args, line)) // si hay tokens
-    { 
+    if (parse_args(args, line)) // si hay tokens
+    {
         // comprueba si es un comando interno
         check_internal(args);
     }
@@ -83,14 +83,14 @@ int parse_args(char **args, char *line)
     {
         fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
     }
-    if(args[i] != NULL && args[i][0] == '#')
+    if (args[i] != NULL && args[i][0] == '#')
     {
         if (DEBUGN1)
         {
             fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
         }
         args[i] = NULL;
-    }  
+    }
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
     {
@@ -100,7 +100,7 @@ int parse_args(char **args, char *line)
         {
             fprintf(stderr, GRIS_T "[parse_args()→token %d: %s]\n" RESET, i, args[i]);
         }
-        if(args[i] != NULL && args[i][0] == '#')
+        if (args[i] != NULL && args[i][0] == '#')
         {
             if (DEBUGN1)
             {
@@ -149,7 +149,7 @@ int check_internal(char **args)
         internal_bg(args);
         return 1;
     }
-    
+
     return 0;
 }
 int internal_cd(char **args)
@@ -188,19 +188,19 @@ int internal_cd(char **args)
         {
             cwd[strlen(cwd) - 1] = '\0';
         } while (cwd[strlen(cwd) - 1] != 47); // 47 es /
-        cwd[strlen(cwd) - 1] = '\0'; // elimino la barra sobrante
-        args[1]++; // quito los dos puntos del string
-        args[1]++; 
+        cwd[strlen(cwd) - 1] = '\0';          // elimino la barra sobrante
+        args[1]++;                            // quito los dos puntos del string
+        args[1]++;
         if (args[1][0] == 47) // si es una barra es que hay dos puntos más
         {
             args[1]++; // quito la barra
         }
     }
     // comprobación de espacios en los argumentos y creación del string que se pondrá en el chdir
-    char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE]; // como máximo el conjunto de los argumentos tendrá este tamaño
-    memset(argsToCwd,0,COMMAND_LINE_SIZE * ARGS_SIZE); // tengo que rellenar la memoria que ocupa de '\0' porque sino 
-                                                       // en cada llamada se mantiene el valor anterior de argsToCwd
-    int i = 1; // índice del argumento que se está comprobando
+    char argsToCwd[COMMAND_LINE_SIZE * ARGS_SIZE];       // como máximo el conjunto de los argumentos tendrá este tamaño
+    memset(argsToCwd, 0, COMMAND_LINE_SIZE * ARGS_SIZE); // tengo que rellenar la memoria que ocupa de '\0' porque sino
+                                                         // en cada llamada se mantiene el valor anterior de argsToCwd
+    int i = 1;                                           // índice del argumento que se está comprobando
     while (args[i] != NULL && args[i][0] != '\0')
     {
         strcat(argsToCwd, "/");
@@ -211,18 +211,18 @@ int internal_cd(char **args)
             i++;
         }
         if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
-        { 
+        {
             int tipoComa = args[i][0];
             args[i]++; // paso por encima de la comilla
-            printf("\n%s\n%c",args[i],tipoComa);
+            printf("\n%s\n%c", args[i], tipoComa);
             fflush(stdout);
-            while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i])-1] == 1 || args[i][strlen(args[i])-1] == 6))
+            while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i]) - 1] == 1 || args[i][strlen(args[i]) - 1] == 6))
             {
                 strcat(argsToCwd, args[i]);
                 strcat(argsToCwd, " ");
                 i++;
             }
-            if(args[i][strlen(args[i])-1] != tipoComa) // si no es " " o ' '
+            if (args[i][strlen(args[i]) - 1] != tipoComa) // si no es " " o ' '
             {
                 perror("Error en internal_cd() por comillas diferentes");
                 return FAILURE;
@@ -247,13 +247,13 @@ int internal_cd(char **args)
 }
 int internal_export(char **args)
 {
-    if(args[1] == NULL)
+    if (args[1] == NULL)
     {
         fprintf(stderr, ROJO_T "Error de sintaxis. Uso: export Nombre=Valor\n" RESET);
         return FAILURE;
     }
     char *valor;
-    if(!(valor = strchr(args[1], 61))) // 61 es =
+    if (!(valor = strchr(args[1], 61))) // 61 es =
     {
         if (DEBUGN2)
         {
@@ -274,11 +274,13 @@ int internal_export(char **args)
         return FAILURE;
     }
     char *vInicial;
-    if(!(vInicial = getenv(nombre))){
+    if (!(vInicial = getenv(nombre)))
+    {
         perror("getenv() error");
         return FAILURE;
     }
-    if(setenv(nombre,valor,1)){
+    if (setenv(nombre, valor, 1))
+    {
         perror("setenv() error");
         return FAILURE;
     }
