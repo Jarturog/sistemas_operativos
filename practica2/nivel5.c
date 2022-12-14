@@ -494,11 +494,13 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
 void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 {
     signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
-
+    char mensaje[2];
+    sprintf(mensaje,"\n");
+    write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
     if (DEBUGN4)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "\n[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 
@@ -537,6 +539,9 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 void ctrlz(int signum)
 {
     signal(SIGTSTP, ctrlz);
+    char mensaje[2];
+    sprintf(mensaje,"\n");
+    write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
     if (jobs_list[0].pid > 0) // si hay un proceso en foreground
     {
         if (strcmp(jobs_list[0].cmd, mi_shell) != 0) // Si el proceso en foreground NO es el mini shell entonces
