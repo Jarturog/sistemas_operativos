@@ -546,8 +546,8 @@ void ctrlz(int signum)
                 perror("kill");
                 exit(FAILURE);
             }
-            char status = 'D';                               /// Cambiar el status del proceso a ‘D’ (detenido).
-            jobs_list_add(jobs_list[0].pid, status, n_pids); // Utilizar jobs_list_add() para incorporar el proceso a la tabla jobs_list[ ] por el final.
+                             /// Cambiar el status del proceso a ‘D’ (detenido).
+            jobs_list_add(jobs_list[0].pid, 'D', jobs_list[0].cmd); // Utilizar jobs_list_add() para incorporar el proceso a la tabla jobs_list[ ] por el final.
             jobs_list_reset(0);                              // Resetear los datos de jobs_list[0] ya que el proceso ha dejado de ejecutarse en foreground.
         }
         else if (DEBUGN5)
