@@ -559,7 +559,7 @@ void ctrlz(int signum)
         {
             char mensaje[1200];
             sprintf(mensaje, GRIS_T "[texto1]\n" RESET);
-            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr  
         }
     }
     else if (DEBUGN5)
