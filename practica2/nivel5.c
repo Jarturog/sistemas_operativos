@@ -140,7 +140,7 @@ int execute_line(char *line)
         signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
         signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
         signal(SIGTSTP, SIG_IGN); // ignorará la señal SIGTSTP
-        if (DEBUGN3 || DEBUGN4)   // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece (aparte de en el del nivel 3)
+        if (DEBUGN3 || DEBUGN4 || DEBUGN5) // en la página 7 de la del nivel 4 y en la página 8 del nivel 5 también aparecen (aparte de en el del nivel 3)
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
         }
@@ -150,7 +150,7 @@ int execute_line(char *line)
     }
     else if (pid > 0) // Proceso padre
     {
-        if (DEBUGN3 || DEBUGN4) // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece
+        if (DEBUGN3 || DEBUGN4 || DEBUGN5) // hago el OR porque en la página 7 de la documentación del nivel 4 y en la página 8 del nivel 5 también aparecen
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getpid(), mi_shell);
         }
@@ -430,7 +430,7 @@ int internal_jobs(char **args)
 {
     for (int i = 1; i <= n_pids; i++)
     {
-        fprintf(stdout, GRIS_T "[%d]\t%d\t%s\t%c\n" RESET, i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
+        fprintf(stdout, GRIS_T "[%d]\t%d\t%c\t%s\n" RESET, i, jobs_list[i].pid, jobs_list[i].status, jobs_list[i].cmd);
     }
     return SUCCESS;
 }
@@ -600,7 +600,7 @@ int jobs_list_add(pid_t pid, char status, char *cmd) // añade un job a la lista
     }
     n_pids++;                                   // incrementamos el valor de n_pids indicando que añadimos un job
     jobs_list_update(n_pids, pid, status, cmd); // y se añade una vez incrementado
-    fprintf(stdout, "[%d]\t%d\t%s\t%c\n", i, jobs_list[n_pids].pid, jobs_list[n_pids].cmd, jobs_list[n_pids].status);
+    fprintf(stdout, "[%d]\t%d\t%c\t%s\n", n_pids, jobs_list[n_pids].pid, jobs_list[n_pids].status, jobs_list[n_pids].cmd);
     return SUCCESS;
 }
 
