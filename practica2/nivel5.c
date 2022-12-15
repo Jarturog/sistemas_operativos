@@ -140,14 +140,14 @@ int execute_line(char *line)
         signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
         signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
         signal(SIGTSTP, SIG_IGN); // ignorará la señal SIGTSTP
-        execvp(args[0], args); // si sigue la ejecución es por un error
+        execvp(args[0], args);    // si sigue la ejecución es por un error
         fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
         exit(FAILURE);
     }
     else if (pid > 0) // Proceso padre
     {
         if (DEBUGN3 || DEBUGN4 || DEBUGN5) // hago el OR porque en la página 7 de la documentación del nivel 4 y en la página 8 del nivel 5 también aparecen
-        {   // se ha decidido imprimir los dos juntos ya que al tratarse de procesos diferentes no se aseguraba que estuvieran en orden las impresiones
+        {                                  // se ha decidido imprimir los dos juntos ya que al tratarse de procesos diferentes no se aseguraba que estuvieran en orden las impresiones
             fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), mi_shell, pid, line_inalterada);
         }
 
@@ -449,9 +449,9 @@ int internal_bg(char **args)
     return 1;
 }
 
-void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
-{                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada después de ser llamado el reaper
-    signal(SIGCHLD, reaper); 
+void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
+{                       // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada después de ser llamado el reaper
+    signal(SIGCHLD, reaper);
     pid_t ended;
     int status;
     char mensaje[2];
@@ -465,29 +465,41 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
     }
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
     {
-        if (ended == jobs_list[0].pid) // si el que ha acabado estaba en foreground
+        int pos;
+        char[11] planoEjecucion;
+        char[COMMAND_LINE_SIZE] cmd;
+        int foreground = ended == jobs_list[0].pid;
+        if (foreground) // si el que ha acabado estaba en foreground
         {
-            if (DEBUGN4)
-            {
-                char mensaje[1200];
-                if (!WIFSIGNALED(status)) // si no ha sido abortado
-                {
-                    sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
-                }
-                else // si ha sido abortado
-                {
-                    sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
-                }
-                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-            }
-            jobs_list_reset(0);        // relleno de 0's el cmd y el pid
-            jobs_list[0].status = 'F'; // sustituyo el status por F
+            pos = 0; // es el job 0
+            planoEjecucion = "foreground";
+            cmd = jobs_list[pos].cmd;
+            jobs_list_reset(pos);        // relleno de 0's el cmd y el pid
+            jobs_list[pos].status = 'F'; // sustituyo el status por F
         }
         else
         {
-            int pos = jobs_list_find(ended);
+            pos = jobs_list_find(ended);
+            planoEjecucion = "background";
+            cmd = jobs_list[pos].cmd;
+        }
+        if (DEBUGN5)
+        {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
+            if (!WIFSIGNALED(status)) // si no ha sido abortado
+            {
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d en %s (%s) finalizado con exit code %d]\n" RESET, ended, planoEjecucion, cmd, WEXITSTATUS(status));
+            }
+            else // si ha sido abortado
+            {
+                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d en %s (%s) finalizado por señal %d]\n" RESET, ended, planoEjecucion, cmd, WTERMSIG(status));
+            }
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+        }
+        if (!foreground)
+        {
+            char mensaje[1200];
+            sprintf(mensaje, "Terminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, jobs_list[pos].cmd, pos, status);
             write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
             jobs_list_remove(pos);              // elimina el job al haber finalizado
         }
@@ -550,7 +562,7 @@ void ctrlz(int signum)
         sprintf(mensaje, GRIS_T "[ctrlz()→ recibida señal %d (SIGTSTP)]\n" RESET, SIGTSTP);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
-    if (jobs_list[0].pid > 0)           // si hay un proceso en foreground
+    if (jobs_list[0].pid > 0) // si hay un proceso en foreground
     {
         if (strcmp(jobs_list[0].cmd, mi_shell) != 0) // Si el proceso en foreground NO es el mini shell entonces
         {
@@ -623,7 +635,7 @@ int jobs_list_remove(int pos) // elimina un job y pone en su posición el últim
     }
     // mueve el registro del último proceso de la lista a la posición del que eliminamos.
     jobs_list_update(pos, jobs_list[n_pids].pid, jobs_list[n_pids].status, jobs_list[n_pids].cmd);
-    jobs_list_reset(pos); // se elimina el job desplazado
-    n_pids--;             // se decrementa la variable global n_pids.
+    jobs_list_reset(n_pids); // se elimina el job desplazado
+    n_pids--;                // se decrementa la variable global n_pids.
     return SUCCESS;
 }
