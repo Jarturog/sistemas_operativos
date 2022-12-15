@@ -472,7 +472,7 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
         if (foreground) // si el que ha acabado estaba en foreground
         {
             pos = 0; // es el job 0
-            planoEjecucion = {'f', 'o', 'r', 'e', 'g', 'r', 'o', 'u', 'n', 'd', '\0'};
+            strcpy(planoEjecucion, "foreground");
             strcpy(cmd, jobs_list[pos].cmd);
             jobs_list_reset(pos);        // relleno de 0's el cmd y el pid
             jobs_list[pos].status = 'F'; // sustituyo el status por F
@@ -480,7 +480,7 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
         else
         {
             pos = jobs_list_find(ended);
-            planoEjecucion = {'b', 'a', 'c', 'k', 'g', 'r', 'o', 'u', 'n', 'd', '\0'};
+            strcpy(planoEjecucion, "background");
             strcpy(cmd, jobs_list[pos].cmd);
             jobs_list_remove(pos); // elimina el job al haber finalizado
         }
