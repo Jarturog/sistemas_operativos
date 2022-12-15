@@ -19,7 +19,15 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+struct info_job
+{
+    pid_t pid;
+    char status;                 // ‘N’, ’E’, ‘D’, ‘F’ (‘N’: ninguno, ‘E’: Ejecutándose y ‘D’: Detenido, ‘F’: Finalizado)
+    char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
+};
+
 static char mi_shell[COMMAND_LINE_SIZE];
+static struct info_job jobs_list[N_JOBS];
 static int n_pids; // número de jobs en la lista de jobs
 
 // declaraciones de funciones
@@ -43,31 +51,6 @@ int is_background(char **args);
 int jobs_list_add(pid_t pid, char status, char *cmd);
 int jobs_list_find(pid_t pid);
 int jobs_list_remove(int pos);
-
-// Lista de tareas
-struct info_job
-{
-    pid_t pid;
-    char status;                 // ‘N’, ’E’, ‘D’, ‘F’ (‘N’: ninguno, ‘E’: Ejecutándose y ‘D’: Detenido, ‘F’: Finalizado)
-    char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
-};
-
-static struct info_job jobs_list[N_JOBS];
-
-// Funcion para inicializar jobs_List
-void jobs_list_reset(int idx)
-{
-    jobs_list[idx].pid = 0;
-    jobs_list[idx].status = 'N';
-    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
-}
-
-void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
-{
-    jobs_list[idx].pid = pid;
-    jobs_list[idx].status = status;
-    strcpy(jobs_list[idx].cmd, cmd);
-}
 
 int main(int argc, char *argv[])
 {
@@ -151,7 +134,7 @@ int execute_line(char *line)
             fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), mi_shell, pid, line_inalterada);
         }
 
-        if (!background)
+        if (!background) // si se ejecuta en primer plano
         {
             jobs_list_update(0, pid, 'E', line_inalterada);
             while (jobs_list[0].pid > 0)
@@ -575,8 +558,8 @@ void ctrlz(int signum)
                 exit(FAILURE);
             }
             /// Cambiar el status del proceso a ‘D’ (detenido).
-            jobs_list_add(jobs_list[0].pid, 'D', jobs_list[0].cmd); // Utilizar jobs_list_add() para incorporar el proceso a la tabla jobs_list[ ] por el final.
-            jobs_list_reset(0);                                     // Resetear los datos de jobs_list[0] ya que el proceso ha dejado de ejecutarse en foreground.
+            jobs_list_add(jobs_list[0].pid, 'D', jobs_list[0].cmd); // Utilizo jobs_list_add() para incorporar el proceso a la tabla jobs_list[ ] por el final.
+            jobs_list_reset(0);                                     // Reseteo los datos de jobs_list[0] ya que el proceso ha dejado de ejecutarse en foreground.
         }
         else if (DEBUGN5)
         {
@@ -604,6 +587,20 @@ int is_background(char **args) // Devuelve 1 si localiza el token & (background)
         }
     }
     return 0;
+}
+
+void jobs_list_reset(int idx)
+{
+    jobs_list[idx].pid = 0;
+    jobs_list[idx].status = 'N';
+    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
+}
+
+void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
+{
+    jobs_list[idx].pid = pid;
+    jobs_list[idx].status = status;
+    strcpy(jobs_list[idx].cmd, cmd);
 }
 
 int jobs_list_add(pid_t pid, char status, char *cmd) // añade un job a la lista

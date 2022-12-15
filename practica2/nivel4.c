@@ -18,7 +18,15 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+struct info_job
+{
+    pid_t pid;
+    char status;                 // ‘N’, ’E’, ‘D’, ‘F’ (‘N’: ninguno, ‘E’: Ejecutándose y ‘D’: Detenido, ‘F’: Finalizado)
+    char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
+};
+
 static char mi_shell[COMMAND_LINE_SIZE];
+static struct info_job jobs_list[N_JOBS];
 
 // declaraciones de funciones
 char *read_line(char *line);
@@ -36,31 +44,6 @@ void jobs_list_reset(int idx);
 void jobs_list_update(int idx, pid_t pid, char status, char cmd[]);
 void reaper(int signum);
 void ctrlc(int signum);
-
-// Lista de tareas
-struct info_job
-{
-    pid_t pid;
-    char status;                 // ‘N’, ’E’, ‘D’, ‘F’ (‘N’: ninguno, ‘E’: Ejecutándose y ‘D’: Detenido, ‘F’: Finalizado)
-    char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
-};
-
-static struct info_job jobs_list[N_JOBS];
-
-// Funcion para inicializar jobs_List
-void jobs_list_reset(int idx)
-{
-    jobs_list[idx].pid = 0;
-    jobs_list[idx].status = 'N';
-    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
-}
-
-void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
-{
-    jobs_list[idx].pid = pid;
-    jobs_list[idx].status = status;
-    strcpy(jobs_list[idx].cmd, cmd);
-}
 
 int main(int argc, char *argv[])
 {
@@ -441,7 +424,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
     int status;
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
     {
-        if (DEBUGN4) // Enviamos la señal SIGINT al proceso
+        if (DEBUGN4)
         {
             char mensaje[1200];
             if (!WIFSIGNALED(status)) // si no ha sido abortado
@@ -499,4 +482,18 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
+}
+
+void jobs_list_reset(int idx)
+{
+    jobs_list[idx].pid = 0;
+    jobs_list[idx].status = 'N';
+    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
+}
+
+void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
+{
+    jobs_list[idx].pid = pid;
+    jobs_list[idx].status = status;
+    strcpy(jobs_list[idx].cmd, cmd);
 }
