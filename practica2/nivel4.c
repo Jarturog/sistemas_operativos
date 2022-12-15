@@ -19,7 +19,6 @@
 #include <signal.h>
 
 static char mi_shell[COMMAND_LINE_SIZE];
-static int matado; // booleano que indica si el proceso ha sido matado o ha finalizado normalmente // --- auxiliar por no encontar mejor solución ---
 
 // declaraciones de funciones
 char *read_line(char *line);
@@ -71,7 +70,6 @@ int main(int argc, char *argv[])
     char line[COMMAND_LINE_SIZE];
     jobs_list_reset(0);
     strcpy(mi_shell, argv[0]);
-    matado = 0; // se inicializa el valor a 0 indicando que no ha habido ningún proceso matado
     // Se inicia el bucle para leer los comandos
     while (1)
     {
@@ -446,7 +444,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         if (DEBUGN4) // Enviamos la señal SIGINT al proceso
         {
             char mensaje[1200];
-            if (!matado) // si no ha sido abortado
+            if (!WIFSIGNALED(status)) // si no ha sido abortado
             {
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
             }
@@ -456,8 +454,8 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
-        matado = 0; // reinicio matado a 0
-        jobs_list_reset(0);
+        jobs_list_reset(0); // relleno de 0's el cmd y el pid
+        jobs_list[0].status = 'F'; // sustituyo el status por F
     }
 }
 
@@ -487,7 +485,6 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
                 perror("kill");
                 exit(FAILURE);
             }
-            matado = -1; // al asignar -1 indica que el proceso ha sido matado
         }
         else if (DEBUGN4)
         {
