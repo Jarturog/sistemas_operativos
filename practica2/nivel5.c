@@ -137,10 +137,6 @@ int execute_line(char *line)
     pid_t pid = fork();
     if (pid == 0) // Proceso hijo
     {
-        if (DEBUGN3 || DEBUGN4 || DEBUGN5) // en la página 7 de la del nivel 4 y en la página 8 del nivel 5 también aparecen (aparte de en el del nivel 3)
-        {
-            fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
-        }
         signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
         signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
         signal(SIGTSTP, SIG_IGN); // ignorará la señal SIGTSTP
@@ -151,8 +147,8 @@ int execute_line(char *line)
     else if (pid > 0) // Proceso padre
     {
         if (DEBUGN3 || DEBUGN4 || DEBUGN5) // hago el OR porque en la página 7 de la documentación del nivel 4 y en la página 8 del nivel 5 también aparecen
-        {
-            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getpid(), mi_shell);
+        {   // se ha decidido imprimir los dos juntos ya que al tratarse de procesos diferentes no se aseguraba que estuvieran en orden las impresiones
+            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), mi_shell, pid, line_inalterada);
         }
 
         if (!background)
@@ -165,10 +161,6 @@ int execute_line(char *line)
         }
         else
         {
-            if(DEBUGN5)
-            {
-                sleep(0.5); // espera extra para que al hijo le dé tiempo de imprimir su mensaje antes de que el padre imprima el prompt
-            }
             jobs_list_add(pid, 'E', line_inalterada); // si se ejecuta en background lo incorpora a la lista de trabajos jobs_list[ ]
         }
     }
