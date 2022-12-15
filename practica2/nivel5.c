@@ -165,7 +165,7 @@ int execute_line(char *line)
         }
         else
         {
-            jobs_list_add(getpid(), 'E', line_inalterada); // si se ejecuta en background lo incorpora a la lista de trabajos jobs_list[ ]
+            jobs_list_add(pid, 'E', line_inalterada); // si se ejecuta en background lo incorpora a la lista de trabajos jobs_list[ ]
         }
     }
     else // Error
