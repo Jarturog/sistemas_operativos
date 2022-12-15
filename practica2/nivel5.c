@@ -457,14 +457,14 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
     char mensaje[2];
     sprintf(mensaje, "\n");
     write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
-    if (DEBUGN5)
-    {
-        char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[reaper()→ recibida señal %d (SIGCHLD)]\n" RESET, SIGCHLD);
-        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-    }
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
     {
+        if (DEBUGN5)
+        {
+            char mensaje[1200];
+            sprintf(mensaje, GRIS_T "[reaper()→ recibida señal %d (SIGCHLD)]\n" RESET, SIGCHLD);
+            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+        }
         int pos;
         char planoEjecucion[11];
         char cmd[COMMAND_LINE_SIZE];
@@ -553,19 +553,25 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 void ctrlz(int signum)
 {
     signal(SIGTSTP, ctrlz);
-    char mensaje[2];
-    sprintf(mensaje, "\n");
-    write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
+    //char mensaje[2];
+    //sprintf(mensaje, "\n");
+    //write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
     if (DEBUGN5)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlz()→ recibida señal %d (SIGTSTP)]\n" RESET, SIGTSTP);
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n[ctrlc()→ recibida señal %d (SIGTSTP)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd, signum);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
-    if (jobs_list[0].pid > 0) // si hay un proceso en foreground
+    if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
     {
         if (strcmp(jobs_list[0].cmd, mi_shell) != 0) // Si el proceso en foreground NO es el mini shell entonces
         {
+            if (DEBUGN5)
+            {
+                char mensaje[1200];
+                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal %d (SIGTSTP) enviada a %d (%s) por %d (%s)]\n" RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
+                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+            }
             if (kill(jobs_list[0].pid, SIGSTOP) != 0) // Enviamos la señal SIGSTOP al proceso, y si ha habido error entra en el if
             {
                 perror("kill");
@@ -578,14 +584,14 @@ void ctrlz(int signum)
         else if (DEBUGN5)
         {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[texto1]\n" RESET);
+            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal %d (SIGTSTP) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, signum, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
     else if (DEBUGN5)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[texto2]\n" RESET);
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal %d (SIGTSTP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, signum, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
