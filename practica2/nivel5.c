@@ -143,6 +143,7 @@ int execute_line(char *line)
         if (DEBUGN3 || DEBUGN4 || DEBUGN5) // en la página 7 de la del nivel 4 y en la página 8 del nivel 5 también aparecen (aparte de en el del nivel 3)
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
+            fflush(stderr);
         }
         execvp(args[0], args); // si sigue la ejecución es por un error
         fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
@@ -153,6 +154,7 @@ int execute_line(char *line)
         if (DEBUGN3 || DEBUGN4 || DEBUGN5) // hago el OR porque en la página 7 de la documentación del nivel 4 y en la página 8 del nivel 5 también aparecen
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getpid(), mi_shell);
+            fflush(stderr);
         }
 
         if (!background)
@@ -430,7 +432,7 @@ int internal_jobs(char **args)
 {
     for (int i = 1; i <= n_pids; i++)
     {
-        fprintf(stdout, GRIS_T "[%d]\t%d\t%c\t%s\n" RESET, i, jobs_list[i].pid, jobs_list[i].status, jobs_list[i].cmd);
+        fprintf(stdout, "[%d]\t%d\t%c\t%s\n", i, jobs_list[i].pid, jobs_list[i].status, jobs_list[i].cmd);
     }
     return SUCCESS;
 }
@@ -454,10 +456,13 @@ int internal_bg(char **args)
 }
 
 void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
-{                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada
-    signal(SIGCHLD, reaper); // después de la asignación que hemos hecho
+{                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada después de ser llamado el reaper
+    signal(SIGCHLD, reaper); 
     pid_t ended;
     int status;
+    char mensaje[2];
+    sprintf(mensaje, "\n");
+    write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
     if (DEBUGN5)
     {
         char mensaje[1200];
@@ -488,7 +493,7 @@ void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal 
         {
             int pos = jobs_list_find(ended);
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "\n[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
+            sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
             write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
             jobs_list_remove(pos);              // elimina el job al haber finalizado
         }
