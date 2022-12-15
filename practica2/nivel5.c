@@ -143,7 +143,6 @@ int execute_line(char *line)
         if (DEBUGN3 || DEBUGN4 || DEBUGN5) // en la página 7 de la del nivel 4 y en la página 8 del nivel 5 también aparecen (aparte de en el del nivel 3)
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
-            fflush(stderr);
         }
         execvp(args[0], args); // si sigue la ejecución es por un error
         fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
@@ -154,7 +153,6 @@ int execute_line(char *line)
         if (DEBUGN3 || DEBUGN4 || DEBUGN5) // hago el OR porque en la página 7 de la documentación del nivel 4 y en la página 8 del nivel 5 también aparecen
         {
             fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getpid(), mi_shell);
-            fflush(stderr);
         }
 
         if (!background)
@@ -168,6 +166,7 @@ int execute_line(char *line)
         else
         {
             jobs_list_add(pid, 'E', line_inalterada); // si se ejecuta en background lo incorpora a la lista de trabajos jobs_list[ ]
+            sleep(0.0001); // espera extra para que al hijo le dé tiempo de imprimir su mensaje antes de que el padre imprima el prompt
         }
     }
     else // Error
