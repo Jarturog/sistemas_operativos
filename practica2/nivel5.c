@@ -466,22 +466,23 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
     {
         int pos;
-        char[11] planoEjecucion;
-        char[COMMAND_LINE_SIZE] cmd;
+        char planoEjecucion[11];
+        char cmd[COMMAND_LINE_SIZE];
         int foreground = ended == jobs_list[0].pid;
         if (foreground) // si el que ha acabado estaba en foreground
         {
             pos = 0; // es el job 0
-            planoEjecucion = "foreground";
-            cmd = jobs_list[pos].cmd;
+            planoEjecucion = {'f', 'o', 'r', 'e', 'g', 'r', 'o', 'u', 'n', 'd', '\0'};
+            strcpy(cmd, jobs_list[pos].cmd);
             jobs_list_reset(pos);        // relleno de 0's el cmd y el pid
             jobs_list[pos].status = 'F'; // sustituyo el status por F
         }
         else
         {
             pos = jobs_list_find(ended);
-            planoEjecucion = "background";
-            cmd = jobs_list[pos].cmd;
+            planoEjecucion = {'b', 'a', 'c', 'k', 'g', 'r', 'o', 'u', 'n', 'd', '\0'};
+            strcpy(cmd, jobs_list[pos].cmd);
+            jobs_list_remove(pos); // elimina el job al haber finalizado
         }
         if (DEBUGN5)
         {
@@ -496,12 +497,11 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
             }
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
-        if (!foreground)
+        if (!foreground) // si es en background imprime su terminación
         {
             char mensaje[1200];
-            sprintf(mensaje, "Terminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, jobs_list[pos].cmd, pos, status);
+            sprintf(mensaje, "Terminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, cmd, pos, status);
             write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
-            jobs_list_remove(pos);              // elimina el job al haber finalizado
         }
     }
 }
