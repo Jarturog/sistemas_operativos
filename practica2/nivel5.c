@@ -617,7 +617,7 @@ int jobs_list_add(pid_t pid, char status, char *cmd) // añade un job a la lista
 
 int jobs_list_find(pid_t pid) // Busca en el array de trabajos el PID que recibe como argumento
 {
-    for (int i = 0; i < n_pids; i++)
+    for (int i = 1; i <= n_pids; i++)
     {
         if (jobs_list[i].pid == pid)
         {
