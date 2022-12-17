@@ -741,7 +741,6 @@ int is_output_redirection(char **args)
         perror("Error al abrir o crear fichero");
     }
     // Se redirecciona el descriptor 1 a fd
-    fprintf("Fichero creado con nombre %s\n", args[i + 1]);
     dup2(fd, 1);
     if ((close(fd)) < 0)
     {
