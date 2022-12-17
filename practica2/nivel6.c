@@ -29,7 +29,7 @@ struct info_job
     char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
 };
 
-static char mi_shell[COMMAND_LINE_SIZE];
+static char mi_shell[COMMAND_LINE_SIZE]; // el nombre del ejecutable con el que se ha ejecutado el mini shell
 static struct info_job jobs_list[N_JOBS];
 static int n_pids; // número de jobs en la lista de jobs
 
@@ -431,7 +431,7 @@ int internal_fg(char **args)
     }
     if ((pos > n_pids) || (pos == 0))
     {
-        fprintf(stderr, ROJO_T "fg %d: no existe el trabajo\n" RESET, pos);
+        fprintf(stderr, ROJO_T "fg %d: no existe ese trabajo\n" RESET, pos);
         return FAILURE;
     }
 
@@ -479,7 +479,7 @@ int internal_bg(char **args)
     }
     if ((pos > n_pids) || (pos == 0))
     {
-        fprintf(stderr, ROJO_T "bg %d: no existe el trabajo\n" RESET, pos);
+        fprintf(stderr, ROJO_T "bg %d: no existe ese trabajo\n" RESET, pos);
         return FAILURE;
     }
     // Se chequea que el proceso este en pausa
@@ -607,13 +607,10 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 void ctrlz(int signum)
 {
     signal(SIGTSTP, ctrlz);
-    char mensaje[2];
-    sprintf(mensaje, "\n");
-    write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
     if (DEBUGN5)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n[ctrlc()→ recibida señal %d (SIGTSTP)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd, signum);
+        sprintf(mensaje, GRIS_T "\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n[ctrlc()→ recibida señal %d (SIGTSTP)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd, signum);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
     if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
@@ -685,7 +682,7 @@ int jobs_list_add(pid_t pid, char status, char *cmd) // añade un job a la lista
     }
     n_pids++;                                   // incrementamos el valor de n_pids indicando que añadimos un job
     jobs_list_update(n_pids, pid, status, cmd); // y se añade una vez incrementado
-    fprintf(stdout, "[%d]\t%d\t%c\t%s\n", n_pids, jobs_list[n_pids].pid, jobs_list[n_pids].status, jobs_list[n_pids].cmd);
+    fprintf(stdout, "\n[%d]\t%d\t%c\t%s\n", n_pids, jobs_list[n_pids].pid, jobs_list[n_pids].status, jobs_list[n_pids].cmd);
     return SUCCESS;
 }
 
