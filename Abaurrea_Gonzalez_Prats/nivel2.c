@@ -1,11 +1,9 @@
+// Autores: Juan Arturo Abaurrea Calafell, Pere Antoni Prats Villalonga y Marta González Juan
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
-#define N_JOBS 64
 #define DEBUGN1 0
-#define DEBUGN2 0
-#define DEBUGN3 0
-#define DEBUGN4 -1
+#define DEBUGN2 -1
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
@@ -15,18 +13,6 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <signal.h>
-
-struct info_job
-{
-    pid_t pid;
-    char status;                 // ‘N’, ’E’, ‘D’, ‘F’ (‘N’: ninguno, ‘E’: Ejecutándose y ‘D’: Detenido, ‘F’: Finalizado)
-    char cmd[COMMAND_LINE_SIZE]; // línea de comando asociada
-};
-
-static char mi_shell[COMMAND_LINE_SIZE];
-static struct info_job jobs_list[N_JOBS];
 
 // declaraciones de funciones
 char *read_line(char *line);
@@ -40,20 +26,10 @@ int internal_source(char **args);
 int internal_jobs(char **args);
 int internal_fg(char **args);
 int internal_bg(char **args);
-void jobs_list_reset(int idx);
-void jobs_list_update(int idx, pid_t pid, char status, char cmd[]);
-void reaper(int signum);
-void ctrlc(int signum);
 
-int main(int argc, char *argv[])
+int main()
 {
-    signal(SIGCHLD, reaper); // llamada al enterrador de zombies cuando un hijo acaba (señal SIGCHLD)
-    signal(SIGINT, ctrlc);   // SIGINT es la señal de interrupción que produce Ctrl+C
-    // Se inicializan la línea de comandos, el jobs_list y la variable mi_shell
     char line[COMMAND_LINE_SIZE];
-    jobs_list_reset(0);
-    strcpy(mi_shell, argv[0]);
-    // Se inicia el bucle para leer los comandos
     while (1)
     {
         if (read_line(line) != NULL)
@@ -68,7 +44,7 @@ int main(int argc, char *argv[])
 char *read_line(char *line)
 {
     imprimir_prompt();
-    if (fgets(line, COMMAND_LINE_SIZE, stdin))
+    if (fgets(line, COMMAND_LINE_SIZE, stdin) != NULL)
     {
         line[COMMAND_LINE_SIZE - 1] = '\0'; // substituyo el carácter final por \0
         return line;
@@ -80,7 +56,6 @@ char *read_line(char *line)
     }
     return NULL;
 }
-
 void imprimir_prompt()
 {
     char cwd[COMMAND_LINE_SIZE];
@@ -88,57 +63,17 @@ void imprimir_prompt()
     printf(MAGENTA_T "%s" RESET ":" CYAN_T "%s " VERDE_T "%c " RESET, getenv("USER"), cwd, PROMPT);
     fflush(stdout);
 }
-
 int execute_line(char *line)
 {
     char *args[ARGS_SIZE];
-    char line_inalterada[strlen(line) + 1]; // paso extra para imprimir el cmd ya que parse_args altera line
-    strcpy(line_inalterada, line);
-    line_inalterada[strlen(line) - 1] = '\0'; // me deshago del salto de línea
-    // fragmenta line en args
-    if (!parse_args(args, line)) // si no hay tokens
+    // fragmenta line en tokens
+    if (parse_args(args, line)) // si hay tokens
     {
-        return FAILURE;
+        // comprueba si es un comando interno
+        check_internal(args);
     }
-    // comprueba si es un comando interno
-    if (check_internal(args))
-    {
-        return SUCCESS;
-    }
-    // Si no es un comando interno se crea un hilo para ejecutar el comando
-    pid_t pid = fork();
-    if (pid == 0) // Proceso hijo
-    {
-        signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
-        signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
-        if (DEBUGN3 || DEBUGN4)   // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece (aparte de en el del nivel 3)
-        {
-            fprintf(stderr, GRIS_T "[execute_line()→ PID hijo: %d (%s)]\n" RESET, getpid(), line_inalterada);
-        }
-        execvp(args[0], args); // si sigue la ejecución es por un error
-        fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
-        exit(FAILURE);
-    }
-    else if (pid > 0) // Proceso padre
-    {
-        if (DEBUGN3 || DEBUGN4) // hago el OR porque en la página 7 de la documentación del nivel 4 también aparece
-        {
-            fprintf(stderr, GRIS_T "[execute_line()→ PID padre: %d (%s)]\n" RESET, getpid(), mi_shell);
-        }
-        jobs_list_update(0, pid, 'E', line_inalterada);
-        signal(SIGINT, ctrlc); // Asocia el manejador ctrlc a la señal SIGINT
-        while (jobs_list[0].pid > 0)
-        { // cuando finaliza el proceso en primer plano sale del while
-            pause();
-        }
-    }
-    else // Error
-    {
-        perror("Error tratando comando externo con fork()");
-    }
-    return SUCCESS;
+    return 0;
 }
-
 int parse_args(char **args, char *line)
 {
     const char delim[4] = "\t\n\r "; // delimitadores
@@ -151,11 +86,11 @@ int parse_args(char **args, char *line)
     }
     if (args[i] != NULL && args[i][0] == '#')
     {
-        args[i] = NULL;
         if (DEBUGN1)
         {
-            fprintf(stderr, GRIS_T "[parse_args()->token %d corregido: %s]\n" RESET, i, args[i]);
+            fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
         }
+        args[i] = NULL;
     }
     // resto de tokens
     while (args[i] != NULL && i < ARGS_SIZE - 1)
@@ -168,17 +103,16 @@ int parse_args(char **args, char *line)
         }
         if (args[i] != NULL && args[i][0] == '#')
         {
-            args[i] = NULL;
             if (DEBUGN1)
             {
-                fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: %s]\n" RESET, i, args[i]);
+                fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
             }
+            args[i] = NULL;
         }
     }
     args[ARGS_SIZE - 1] = NULL; // el último token siempre ha de ser NULL
     return i;
 }
-
 int check_internal(char **args)
 {
     if (strcmp(args[0], "exit") == 0)
@@ -219,7 +153,6 @@ int check_internal(char **args)
 
     return 0;
 }
-
 int internal_cd(char **args)
 {
     char cwd[COMMAND_LINE_SIZE]; // actual directory
@@ -313,7 +246,6 @@ int internal_cd(char **args)
     }
     return SUCCESS;
 }
-
 int internal_export(char **args)
 {
     if (args[1] == NULL)
@@ -359,37 +291,14 @@ int internal_export(char **args)
     }
     return SUCCESS;
 }
-
 int internal_source(char **args)
 {
-    char line[COMMAND_LINE_SIZE];
-    FILE *file;
-
-    if (!args[1])
+    if (DEBUGN1)
     {
-        fprintf(stderr, ROJO_T "Error de sintaxis. Uso: source <nombre_fichero>\n" RESET);
-        return FAILURE;
+        fprintf(stderr, GRIS_T "[internal_source()→Esta función ejecutará un fichero de líneas de comandos]\n" RESET);
     }
-    if (!(file = fopen(args[1], "r")))
-    {
-        perror(ROJO_T "fopen");
-        return FAILURE;
-    }
-    fflush(file);
-    while (fgets(line, COMMAND_LINE_SIZE, file))
-    {
-        line[strlen(line) - 1] = '\0';
-        fflush(file);
-        if (DEBUGN3)
-        {
-            fprintf(stderr, GRIS_T "[Internal_source()→ LINE: %s]\n" RESET, line);
-        }
-        execute_line(line);
-    }
-    fclose(file);
-    return SUCCESS;
+    return 1;
 }
-
 int internal_jobs(char **args)
 {
     if (DEBUGN1)
@@ -398,7 +307,6 @@ int internal_jobs(char **args)
     }
     return 1;
 }
-
 int internal_fg(char **args)
 {
     if (DEBUGN1)
@@ -407,7 +315,6 @@ int internal_fg(char **args)
     }
     return 1;
 }
-
 int internal_bg(char **args)
 {
     if (DEBUGN1)
@@ -415,85 +322,4 @@ int internal_bg(char **args)
         fprintf(stderr, GRIS_T "[internal_bg()→Esta función reactivará un proceso detenido para que siga ejecutándose pero en segundo plano.]\n" RESET);
     }
     return 1;
-}
-
-void reaper(int signum)      // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
-{                            // asignamos de nuevo a reaper como manejador de la señal porque en algunos entornos asignará la acción predeterminada
-    signal(SIGCHLD, reaper); // después de la asignación que hemos hecho
-    pid_t ended;
-    int status;
-    while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
-    {
-        if (DEBUGN4)
-        {
-            char mensaje[1200];
-            if (!WIFSIGNALED(status)) // si no ha sido abortado
-            {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n" RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
-            }
-            else // si ha sido abortado
-            {
-                sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n" RESET, ended, jobs_list[0].cmd, SIGTERM);
-            }
-            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-        }
-        jobs_list_reset(0); // relleno de 0's el cmd y el pid
-        jobs_list[0].status = 'F'; // sustituyo el status por F
-    }
-}
-
-void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
-{
-    signal(SIGINT, ctrlc); // asignamos de nuevo a ctrlc como manejador de la señal
-
-    if (DEBUGN4)
-    {
-        char mensaje[1200];
-        sprintf(mensaje, GRIS_T "\n[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
-        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-    }
-
-    if (jobs_list[0].pid > 0) // si hay un proceso en primer plano
-    {
-        if (strcmp(jobs_list[0].cmd, mi_shell) != 0) // Si el proceso en foreground NO es el mini shell entonces
-        {
-            if (DEBUGN4)
-            {
-                char mensaje[1200];
-                sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
-                write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-            }
-            if (kill(jobs_list[0].pid, SIGTERM) != 0) // Enviamos la señal SIGTERM al proceso, y si ha habido error entra en el if
-            {
-                perror("kill");
-                exit(FAILURE);
-            }
-        }
-        else if (DEBUGN4)
-        {
-            char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
-            write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-        }
-    }
-    else if (DEBUGN4)
-    {
-        char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
-        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
-    }
-}
-
-void jobs_list_reset(int idx)
-{
-    jobs_list[idx].pid = 0;
-    jobs_list[idx].status = 'N';
-    memset(jobs_list[idx].cmd, '\0', COMMAND_LINE_SIZE);
-}
-
-void jobs_list_update(int idx, pid_t pid, char status, char cmd[])
-{
-    jobs_list[idx].pid = pid;
-    jobs_list[idx].status = status;
-    strcpy(jobs_list[idx].cmd, cmd);
 }
