@@ -7,7 +7,7 @@
 #define DEBUGN3 0
 #define DEBUGN4 0
 #define DEBUGN5 0
-#define DEBUGN6 1
+#define DEBUGN6 -1
 #define PROMPT '$'
 #define SUCCESS 0
 #define FAILURE -1
@@ -54,7 +54,7 @@ int is_background(char **args);
 int jobs_list_add(pid_t pid, char status, char *cmd);
 int jobs_list_find(pid_t pid);
 int jobs_list_remove(int pos);
-int is_output_redirection (char **args);
+int is_output_redirection(char **args);
 
 int main(int argc, char *argv[])
 {
@@ -124,11 +124,11 @@ int execute_line(char *line)
     pid_t pid = fork();
     if (pid == 0) // Proceso hijo
     {
-        signal(SIGCHLD, SIG_DFL); // Asocia la acción por defecto a SIGCHLD
-        signal(SIGINT, SIG_IGN);  // ignorará la señal SIGINT
-        signal(SIGTSTP, SIG_IGN); // ignorará la señal SIGTSTP
-        is_output_redirection(args); //Se comprueba si hay redireccionamiento
-        execvp(args[0], args);    // si sigue la ejecución es por un error
+        signal(SIGCHLD, SIG_DFL);    // Asocia la acción por defecto a SIGCHLD
+        signal(SIGINT, SIG_IGN);     // ignorará la señal SIGINT
+        signal(SIGTSTP, SIG_IGN);    // ignorará la señal SIGTSTP
+        is_output_redirection(args); // Se comprueba si hay redireccionamiento
+        execvp(args[0], args);       // si sigue la ejecución es por un error
         fprintf(stderr, ROJO_T "%s: no se encontró la orden\n" RESET, line_inalterada);
         exit(FAILURE);
     }
@@ -421,48 +421,47 @@ int internal_jobs(char **args)
 
 int internal_fg(char **args)
 {
-    if (DEBUGN1)
-    {
-        fprintf(stderr, GRIS_T "[internal_fg()→Esta función enviará un trabajo del background al foreground, o reactivará la ejecución en foreground de un trabajo que había sido detenido.]\n" RESET);
-    }
-
-    //Se chequea la sintaxis
+    // Se chequea la sintaxis
     int pos = atoi(args[1]);
 
-    if(args[1] == NULL)
+    if (args[1] == NULL)
     {
         fprintf(stderr, ROJO_T "Error de sintaxis. Uso: fg <Indice del proceso en JobsList>\n" RESET);
         return FAILURE;
     }
-    if ((pos > n_pids)||(pos == 0))
+    if ((pos > n_pids) || (pos == 0))
     {
-        fprintf(stderr, ROJO_T "No existe el trabajo\n" RESET);
+        fprintf(stderr, ROJO_T "fg %d: no existe el trabajo\n" RESET, pos);
         return FAILURE;
     }
 
-    //Si se llega aqui es que existe el trabajo
-    //Si el status es 'D' se reactiva el proceso y se pasa a la posición 0
+    // Si se llega aqui es que existe el trabajo
+    // Si el status es 'D' se reactiva el proceso y se pasa a la posición 0
     if (jobs_list[pos].status == 'D')
     {
-        kill(jobs_list[pos].pid, SIGCONT);
+        if (kill(jobs_list[pos].pid, SIGCONT) != 0) // si ha habido error entra en el if
+        {
+            perror("kill");
+            exit(FAILURE);
+        }
     }
 
     if (DEBUGN6)
     {
         fprintf(stderr, GRIS_T "[internal_fg()→ Señal 18 (SIGCONT) enviada a %d (%s)]\n" RESET, jobs_list[pos].pid, jobs_list[pos].cmd);
     }
-    //Si en cmd se encuentra el simbolo '&' se elimina
-    if(jobs_list[pos].cmd[strlen(jobs_list[pos].cmd)-1] == '&')
+    // Si en cmd se encuentra el simbolo '&' se elimina
+    if (jobs_list[pos].cmd[strlen(jobs_list[pos].cmd) - 1] == '&')
     {
         jobs_list[pos].cmd[strlen(jobs_list[pos].cmd) - 1] = '\0';
     }
-    //Copiar los datos a jobs_list[0]
+    // Copiar los datos a jobs_list[0]
     jobs_list_update(0, jobs_list[pos].pid, jobs_list[pos].status, jobs_list[pos].cmd);
-    //Eliminar jobs_list[pos]
+    // Eliminar jobs_list[pos]
     jobs_list_remove(pos);
-    //Mostrarlo por pantalla
-    printf("%s\n", jobs_list[0].cmd);
-    //Pausa
+    // Mostrarlo por pantalla
+    fprintf(stdout, "%s\n", jobs_list[0].cmd);
+    // Pausa
     while (jobs_list[0].pid > 0)
     {
         pause();
@@ -471,41 +470,40 @@ int internal_fg(char **args)
 
 int internal_bg(char **args)
 {
-    if (DEBUGN1)
-    {
-        fprintf(stderr, GRIS_T "[internal_bg()→Esta función reactivará un proceso detenido para que siga ejecutándose pero en segundo plano.]\n" RESET);
-    }
-
-    //Se chequea la sintaxis
+    // Se chequea la sintaxis
     int pos = atoi(args[1]);
-    if(args[1] == NULL)
+    if (args[1] == NULL)
     {
         fprintf(stderr, ROJO_T "Error de sintaxis. Uso: bg <Indice del proceso en JobsList>\n" RESET);
         return FAILURE;
     }
-    if ((pos > n_pids)||(pos == 0))
+    if ((pos > n_pids) || (pos == 0))
     {
-        fprintf(stderr, ROJO_T "No existe el trabajo\n" RESET);
+        fprintf(stderr, ROJO_T "bg %d: no existe el trabajo\n" RESET, pos);
         return FAILURE;
     }
-    //Se chequea que el proceso este en pausa
-    if(jobs_list[pos].status == 'E')
+    // Se chequea que el proceso este en pausa
+    if (jobs_list[pos].status == 'E')
     {
-        perror("El trabajo ya está en segundo plano");
+        fprintf(stderr, ROJO_T "bg %d: el trabajo ya está en segundo plano\n" RESET, pos);
         return FAILURE;
     }
-    //Si se llega hasta aqui es que el trabajo esta en pausa
-    if (DEBUGN3)
+    // Si se llega hasta aqui es que el trabajo esta en pausa
+    if (DEBUGN6)
     {
-        fprintf(stderr, GRIS_T "[internal_bg()→ Señal 18 (SIGCONT) enviada a %d (%s)]" RESET, jobs_list[pos].pid, jobs_list[pos].cmd);
+        fprintf(stderr, GRIS_T "[internal_bg()→ Señal 18 (SIGCONT) enviada a %d (%s)]\n" RESET, jobs_list[pos].pid, jobs_list[pos].cmd);
     }
-    //Se cambia el status a 'E' y se añade '&' al cmd
+    // Se cambia el status a 'E' y se añade '&' al cmd
     jobs_list[pos].status = 'E';
-    jobs_list[pos].cmd[strlen(jobs_list[pos].cmd-1)] = '&';
-    //Se envia la señal de continuar
-    kill(jobs_list[pos].pid, SIGCONT);
-    //Se imprime por pantalla
-    printf("[%d]%d\t%c\t%s\n",pos, jobs_list[pos].pid, jobs_list[pos].status, jobs_list[pos].cmd);
+    jobs_list[pos].cmd[strlen(jobs_list[pos].cmd - 1)] = '&';
+    // Se envia la señal de continuar
+    if (kill(jobs_list[pos].pid, SIGCONT) != 0) // si ha habido error entra en el if
+    {
+        perror("kill");
+        exit(FAILURE);
+    }
+    // Se imprime por pantalla
+    fprintf(stdout, "[%d]%d\t%c\t%s\n", pos, jobs_list[pos].pid, jobs_list[pos].status, jobs_list[pos].cmd);
 }
 
 void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
@@ -556,7 +554,7 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
         if (!foreground) // si es en background imprime su terminación
         {
             char mensaje[1200];
-            sprintf(mensaje, "Terminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, cmd, pos, status);
+            sprintf(mensaje, "\nTerminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, cmd, pos, status);
             write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
         }
     }
@@ -716,43 +714,38 @@ int jobs_list_remove(int pos) // elimina un job y pone en su posición el últim
     return SUCCESS;
 }
 
-int is_output_redirection (char **args)
+int is_output_redirection(char **args)
 {
     int i = 0;
     int fd;
-
-    //Se busca el simbolo '>'
-    while((args[i] != NULL) && (strcmp(args[i], ">") != 0))
+    // Se busca el simbolo '>'
+    while ((args[i] != NULL) && (strcmp(args[i], ">") != 0))
     {
         i++;
     }
-    //Si ha salido porque no lo ha encontrado retornamos false(0)
-    if(args[i] == NULL)
+    // Si ha salido porque no lo ha encontrado retornamos false(0)
+    if (args[i] == NULL)
     {
         return 0;
     }
-    //Si ha salido porque ha encontrado el redireccionamiento cambiamos el flujo de salida al fichero
-    else
+    // Si ha salido porque ha encontrado el redireccionamiento cambiamos el flujo de salida al fichero
+    args[i] = NULL;
+    if (args[i + 1] == NULL)
     {
-        args[i] = NULL;
-
-        if(args[i+1] == NULL){
-            fprintf(stderr, ROJO_T "Error de sintaxis. Uso:<COMANDO> > <NOMBRE DEL FICHERO>\n" RESET);
-            return 0;
-        }
-        //Se abre el fichero
-        if((fd = open(args[i+1], O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0)
-        {
-            perror("Error al abrir o crear fichero");
-        }
-        //Se redirecciona el descriptor 1 a fd
-        printf("Fichero creado con nombre %s\n", args[i+1]);
-        dup2(fd, 1);
-        if((close(fd)) < 0)
-        {
-            perror("Error al cerrar fichero");
-        }
-        perror("Fichero cerrado");
-        return SUCCESS;
+        fprintf(stderr, ROJO_T "Error de sintaxis. Uso:<COMANDO> > <NOMBRE DEL FICHERO>\n" RESET);
+        return 0;
     }
+    // Se abre el fichero
+    if ((fd = open(args[i + 1], O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0)
+    {
+        perror("Error al abrir o crear fichero");
+    }
+    // Se redirecciona el descriptor 1 a fd
+    fprintf("Fichero creado con nombre %s\n", args[i + 1]);
+    dup2(fd, 1);
+    if ((close(fd)) < 0)
+    {
+        perror("Error al cerrar fichero");
+    }
+    return SUCCESS;
 }
