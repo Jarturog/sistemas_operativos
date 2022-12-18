@@ -207,6 +207,7 @@ int internal_cd(char **args)
         strcat(argsToCwd, "/");
         while (args[i] != NULL && args[i][0] != '\0' && args[i][strlen(args[i]) - 1] == 92) // si hay la barra inclinada del revés
         {
+            args[i][strlen(args[i]) - 1] = '\0';
             strcat(argsToCwd, args[i]);
             strcat(argsToCwd, " ");
             i++;
