@@ -33,7 +33,7 @@ nivel6: nivel6.o $(LIBRARIES) $(INCLUDES)
 	$(CC) $(LDFLAGS) $(LIBRARIES) $< -o $@
 
 my_shell: my_shell.o $(LIBRARIES) $(INCLUDES)
-#	$(CC) $(LDFLAGS) $(LIBRARIES) $< -o $@
+	$(CC) $(LDFLAGS) $(LIBRARIES) $< -o $@
 
 %.o: %.c $(INCLUDES) 
 	$(CC) $(CFLAGS) -o $@ -c $<
