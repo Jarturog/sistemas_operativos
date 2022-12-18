@@ -294,23 +294,24 @@ int internal_cd(char **args)
         strcat(argsToCwd, "/");
         while (args[i] != NULL && args[i][0] != '\0' && args[i][strlen(args[i]) - 1] == 92) // si hay la barra inclinada del revés
         {
+            args[i][strlen(args[i]) - 1] = '\0';
             strcat(argsToCwd, args[i]);
             strcat(argsToCwd, " ");
             i++;
         }
-        if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
+        if (args[i][0] == 34 || args[i][0] == 39) // si hay comillas simples o dobles
         {
             int tipoComa = args[i][0];
             args[i]++; // paso por encima de la comilla
-            while (args[i] != NULL && args[i][0] != '\0' && (args[i][strlen(args[i]) - 1] == 1 || args[i][strlen(args[i]) - 1] == 6))
-            {
+            while (args[i] != NULL && args[i][0] != '\0' && !(args[i][strlen(args[i]) - 1] == 34 || args[i][strlen(args[i]) - 1] == 39))
+            {   // mientras no sea NULL, ni final y no haya llegado a otra " o '
                 strcat(argsToCwd, args[i]);
                 strcat(argsToCwd, " ");
                 i++;
             }
             if (args[i][strlen(args[i]) - 1] != tipoComa) // si no es " " o ' '
             {
-                perror("Error en internal_cd() por comillas diferentes");
+                fprintf(stderr, ROJO_T "Error en internal_cd() por comillas diferentes" RESET);
                 return FAILURE;
             }
             args[i][strlen(args[i]) - 1] = '\0'; // al substituir la comilla por el \0 reduzco el tamaño del string
