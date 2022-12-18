@@ -109,7 +109,6 @@ int execute_line(char *line)
     char line_inalterada[strlen(line) + 1]; // paso extra para imprimir el cmd ya que parse_args altera line
     strcpy(line_inalterada, line);
     line_inalterada[strlen(line) - 1] = '\0'; // me deshago del salto de línea
-    int fd;
     // fragmenta line en args
     if (!parse_args(args, line)) // si no hay tokens
     {
