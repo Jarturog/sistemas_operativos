@@ -467,6 +467,7 @@ int internal_fg(char **args)
     {
         pause();
     }
+    return SUCCESS;
 }
 
 int internal_bg(char **args)
@@ -505,6 +506,7 @@ int internal_bg(char **args)
     }
     // Se imprime por pantalla
     fprintf(stdout, "[%d]%d\t%c\t%s\n", pos, jobs_list[pos].pid, jobs_list[pos].status, jobs_list[pos].cmd);
+    return SUCCESS;
 }
 
 void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
@@ -636,14 +638,14 @@ void ctrlz(int signum)
         else if (DEBUGN5)
         {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, SIGSTOP, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+            sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, SIGSTOP, getppid(), mi_shell);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
     else if (DEBUGN5)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, SIGSTOP, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, SIGSTOP, getpid(), mi_shell);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
