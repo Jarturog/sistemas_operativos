@@ -215,8 +215,6 @@ int internal_cd(char **args)
         {
             int tipoComa = args[i][0];
             args[i]++; // paso por encima de la comilla
-            printf("\n%s\n%c", args[i], tipoComa);
-            fflush(stdout);
             while (args[i] != NULL && args[i][0] != '\0' && !(args[i][strlen(args[i]) - 1] == 34 || args[i][strlen(args[i]) - 1] == 39))
             {   // mientras no sea NULL, ni final y no haya llegado a otra " o '
                 strcat(argsToCwd, args[i]);
