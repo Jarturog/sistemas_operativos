@@ -88,7 +88,7 @@ int parse_args(char **args, char *line)
     {
         if (DEBUGN1)
         {
-            fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
+            fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: %s]\n" RESET, i, args[i]);
         }
         args[i] = NULL;
     }
@@ -105,7 +105,7 @@ int parse_args(char **args, char *line)
         {
             if (DEBUGN1)
             {
-                fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: (null)]\n" RESET, i, args[i]);
+                fprintf(stderr, GRIS_T "[parse_args()→token %d corregido: %s]\n" RESET, i, args[i]);
             }
             args[i] = NULL;
         }
