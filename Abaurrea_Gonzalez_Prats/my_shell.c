@@ -109,7 +109,6 @@ int execute_line(char *line)
     char line_inalterada[strlen(line) + 1]; // paso extra para imprimir el cmd ya que parse_args altera line
     strcpy(line_inalterada, line);
     line_inalterada[strlen(line) - 1] = '\0'; // me deshago del salto de línea
-    int fd;
     // fragmenta line en args
     if (!parse_args(args, line)) // si no hay tokens
     {
@@ -467,6 +466,7 @@ int internal_fg(char **args)
     {
         pause();
     }
+    return SUCCESS;
 }
 
 int internal_bg(char **args)
@@ -505,6 +505,7 @@ int internal_bg(char **args)
     }
     // Se imprime por pantalla
     fprintf(stdout, "[%d]%d\t%c\t%s\n", pos, jobs_list[pos].pid, jobs_list[pos].status, jobs_list[pos].cmd);
+    return SUCCESS;
 }
 
 void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal enviada a un proceso cuando uno de sus procesos hijos termina)
@@ -516,7 +517,7 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
     {
         if (DEBUGN5)
         {
-            char mensaje[1200];
+            char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
             sprintf(mensaje, GRIS_T "[reaper()→ recibida señal %d (SIGCHLD)]\n" RESET, SIGCHLD);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
@@ -541,7 +542,7 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
         }
         if (DEBUGN5)
         {
-            char mensaje[1200];
+            char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
             if (!WIFSIGNALED(status)) // si no ha sido abortado
             {
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d en %s (%s) finalizado con exit code %d]\n" RESET, ended, planoEjecucion, cmd, WEXITSTATUS(status));
@@ -554,7 +555,7 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
         }
         if (!foreground) // si es en background imprime su terminación
         {
-            char mensaje[1200];
+            char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
             sprintf(mensaje, "\nTerminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, cmd, pos, status);
             write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
         }
@@ -569,7 +570,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
     write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
     if (DEBUGN4 || DEBUGN5)
     {
-        char mensaje[1200];
+        char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
         sprintf(mensaje, GRIS_T "[ctrlc()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n[ctrlc()→ recibida señal %d (SIGINT)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd, signum);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
@@ -580,7 +581,7 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         {
             if (DEBUGN4 || DEBUGN5)
             {
-                char mensaje[1200];
+                char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
                 sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) enviada a %d (%s) por %d (%s)]\n" RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
@@ -592,15 +593,15 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         }
         else if (DEBUGN4 || DEBUGN5)
         {
-            char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+            char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
+            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getpid(), mi_shell);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
     else if (DEBUGN4 || DEBUGN5)
     {
-        char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
@@ -610,7 +611,7 @@ void ctrlz(int signum)
     signal(SIGTSTP, ctrlz);
     if (DEBUGN5)
     {
-        char mensaje[1200];
+        char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
         sprintf(mensaje, GRIS_T "\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n[ctrlc()→ recibida señal %d (SIGTSTP)]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd, signum);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
@@ -620,7 +621,7 @@ void ctrlz(int signum)
         {
             if (DEBUGN5)
             {
-                char mensaje[1200];
+                char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
                 sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]\n" RESET, SIGSTOP, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
                 write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
             }
@@ -635,15 +636,15 @@ void ctrlz(int signum)
         }
         else if (DEBUGN5)
         {
-            char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, SIGSTOP, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+            char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
+            sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, SIGSTOP, getpid(), mi_shell);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
     else if (DEBUGN5)
     {
-        char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, SIGSTOP, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
+        sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, SIGSTOP, getpid(), mi_shell);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
