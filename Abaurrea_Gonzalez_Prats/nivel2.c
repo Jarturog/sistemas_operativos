@@ -211,7 +211,7 @@ int internal_cd(char **args)
             strcat(argsToCwd, " ");
             i++;
         }
-        if (args[i][0] == 1 || args[i][0] == 6) // si hay comillas simples o dobles
+        if (args[i][0] == 34 || args[i][0] == 39) // si hay comillas simples o dobles
         {
             int tipoComa = args[i][0];
             args[i]++; // paso por encima de la comilla

@@ -683,7 +683,7 @@ int jobs_list_add(pid_t pid, char status, char *cmd) // añade un job a la lista
     }
     n_pids++;                                   // incrementamos el valor de n_pids indicando que añadimos un job
     jobs_list_update(n_pids, pid, status, cmd); // y se añade una vez incrementado
-    fprintf(stdout, "\n[%d]\t%d\t%c\t%s\n", n_pids, jobs_list[n_pids].pid, jobs_list[n_pids].status, jobs_list[n_pids].cmd);
+    fprintf(stdout, "[%d]\t%d\t%c\t%s\n", n_pids, jobs_list[n_pids].pid, jobs_list[n_pids].status, jobs_list[n_pids].cmd);
     return SUCCESS;
 }
 
