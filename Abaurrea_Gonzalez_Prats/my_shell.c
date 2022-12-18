@@ -304,7 +304,7 @@ int internal_cd(char **args)
             int tipoComa = args[i][0];
             args[i]++; // paso por encima de la comilla
             while (args[i] != NULL && args[i][0] != '\0' && !(args[i][strlen(args[i]) - 1] == 34 || args[i][strlen(args[i]) - 1] == 39))
-            {   // mientras no sea NULL, ni final y no haya llegado a otra " o '
+            { // mientras no sea NULL, ni final y no haya llegado a otra " o '
                 strcat(argsToCwd, args[i]);
                 strcat(argsToCwd, " ");
                 i++;
@@ -541,7 +541,7 @@ void reaper(int signum) // Manejador propio para la señal SIGCHLD (señal envia
         }
         if (DEBUGN5)
         {
-            char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
+            char mensaje[12000];      // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
             if (!WIFSIGNALED(status)) // si no ha sido abortado
             {
                 sprintf(mensaje, GRIS_T "[reaper()→ Proceso hijo %d en %s (%s) finalizado con exit code %d]\n" RESET, ended, planoEjecucion, cmd, WEXITSTATUS(status));
@@ -608,6 +608,9 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
 void ctrlz(int signum)
 {
     signal(SIGTSTP, ctrlz);
+    char mensaje[2];
+    sprintf(mensaje, "\n");             // salto de línea para que sea más bonito
+    write(1, mensaje, strlen(mensaje)); // 1 es el flujo stdout
     if (DEBUGN5)
     {
         char mensaje[12000]; // creo un String arbitrariamente grande que será contenedor de lo que se va a imprimir
