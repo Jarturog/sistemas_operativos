@@ -519,14 +519,14 @@ void ctrlc(int signum) // Manejador propio para la señal SIGINT (Ctrl+C)
         else if (DEBUGN4 || DEBUGN5)
         {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getppid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+            sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, getpid(), mi_shell);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
     else if (DEBUGN4 || DEBUGN5)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        sprintf(mensaje, GRIS_T "[ctrlc()→ Señal 15 (SIGTERM) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, getpid(), mi_shell);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
@@ -565,14 +565,14 @@ void ctrlz(int signum)
         else if (DEBUGN5)
         {
             char mensaje[1200];
-            sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, SIGSTOP, jobs_list[0].pid, jobs_list[0].cmd);
+            sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que el proceso en foreground es el minishell]\n" RESET, SIGSTOP, getpid(), mi_shell);
             write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
         }
     }
     else if (DEBUGN5)
     {
         char mensaje[1200];
-        sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, SIGSTOP, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        sprintf(mensaje, GRIS_T "[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n" RESET, SIGSTOP, getpid(), mi_shell);
         write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
     }
 }
