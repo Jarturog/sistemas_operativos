@@ -2,7 +2,7 @@
 #include "my_lib.c"
 #define NUM_THREADS 10
 
-pthread_mutex_t *mutex = PTHREAD_MUTEX_INITIALIZER; // semaforo global
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // semaforo global
 struct my_stack *s;
 int N = 1000000;
 // Declaracion de funciones
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        free(my_stack_purge(s)); // libera el espacio reservado con malloc()
+        my_stack_purge(s); // libera el espacio reservado con malloc()
     }
     else
     {
@@ -40,13 +40,16 @@ int main(int argc, char *argv[])
         s = my_stack_init(NUM_THREADS);
     }
 
-    pthread_t *hilos[NUM_THREADS];
+    pthread_t hilos[NUM_THREADS];
 
     for (int i = 0; i < NUM_THREADS; i++)
     {
-        pthread_create(*hilos[i], NULL, worker, NULL);
+        pthread_create(&hilos[i], NULL, worker, NULL);  
     }
-    pthread_join(mutex, NULL);
+    for(int i=0; i<NUM_THREADS;i++){
+        pthread_join(hilos[i], NULL);
+    }
+    
     my_stack_write(s, argv[1]);
     pthread_exit(0);
 }
@@ -55,13 +58,13 @@ void *worker(void *ptr)
 {
     for (int i = 0; i < N; i++)
     {
-        pthread_mutex_lock(mutex);
+        pthread_mutex_lock(&mutex);
         int *data = (int *)my_stack_pop(s); // extrae un elemento de la pila
-        *data++;                            // incrementa el valor
-        pthread_mutex_unlock(mutex);
-        pthread_mutex_lock(mutex);
+        (*data)++;                            // incrementa el valor
+        pthread_mutex_unlock(&mutex);
+        pthread_mutex_lock(&mutex);
         my_stack_push(s, data); // se almacena de nuevo en la pila
-        pthread_mutex_unlock(mutex);
+        pthread_mutex_unlock(&mutex);
     }
     pthread_exit(NULL);
 }

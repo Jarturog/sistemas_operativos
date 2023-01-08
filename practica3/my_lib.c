@@ -127,7 +127,8 @@ struct my_stack *my_stack_read(char *filename){
   if(!(data = malloc(size))){
     return NULL;
   }
-  while (bytesLeidos = read(file, data, size)){
+  bytesLeidos = read(file, data, size);
+  while (bytesLeidos){
     if(bytesLeidos < 0){ // bytesLeidos == -1 si ha habido error
       return NULL;
     }
@@ -135,6 +136,7 @@ struct my_stack *my_stack_read(char *filename){
     if(!(data = malloc(size))){
       return NULL;
     }
+    bytesLeidos = read(file, data, size);
   }
   // Se cierra el fichero
   if(close(file)){
