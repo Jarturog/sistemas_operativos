@@ -11,16 +11,6 @@ manejo de una pila */
 #include <unistd.h>    /* Funciones read(), write(), close()*/
 #include <errno.h>     /* COntrol de errores (errno) */
 
-//declaraciones funciones libreria string
-size_t my_strlen(const char *str);
-int my_strcmp(const char *str1, const char *str2);
-char *my_strcpy(char *dest, const char *src);
-char *my_strncpy(char *dest, const char *src, size_t n);
-char *my_strcat(char *dest, const char *src);
-char *my_strchr(const char *s, int c);
-
-// char *my_strncat(char *dest, const char *src, size_t n);
-
 //structuras para gestor de pila
 struct my_stack_node {      // nodo de la pila (elemento)
     void *data;
