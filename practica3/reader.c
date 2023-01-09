@@ -33,12 +33,12 @@ int main(int argc, char *argv[])
         sum += *data;
 
         // Se imprime el valor y se pasa al siguiente nodo
-        fprintf("%d\n", *data);
+        fprintf(stdout, "%d\n", (int)*data);
         nodo = nodo->next;
         data = (int *)nodo->data;
     }
     // Una vez se sale del bucle se calcula la media y se imprime por pantalla
-    fprintf("Items: %d Min: %d Max: %d Average: %d", NUM_THREADS, min, max, sum / NUM_THREADS);
+    fprintf(stdout, "Items: %d Min: %d Max: %d Average: %d", NUM_THREADS, min, max, sum / NUM_THREADS);
 
     return 0;
 }
