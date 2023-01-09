@@ -17,13 +17,8 @@ int main(int argc, char *argv[])
         return -1;
     }
     fprintf(stdout, "Threads: %d, Iterations: %d\n", NUM_THREADS, N);
-    if (((pila = my_stack_read(argv[1])) == 0) || (my_stack_len(pila) < NUM_THREADS)) // asigna la pila cuyo nombre del fichero se ha pasado por consola
-    {
-        fprintf(stdout, "original stack content:\n");
-        my_stack_visualize(pila);
-        fprintf(stdout, "original stack length: %d\n", my_stack_len(pila));
-    }
-    else // si la pila es menor que NUM_THREADS o si ha habido error (no existe)
+    pila = my_stack_read(argv[1]);
+    if ((pila == NULL) || (my_stack_len(pila) < NUM_THREADS)) // si la pila es menor que NUM_THREADS o si no existe
     {
         int *data;        // los datos a introducir en la pila
         if (pila == NULL) // si no existe crea una
@@ -36,7 +31,7 @@ int main(int argc, char *argv[])
         }
         fprintf(stdout, "initial stack length: %d\n", my_stack_len(pila));
         fprintf(stdout, "initial stack content:\n");
-        my_stack_visualize(pila);                 // se visualiza el contenido de la pila
+        my_stack_visualize(pila);             // se visualiza el contenido de la pila
         if (my_stack_len(pila) < NUM_THREADS) // si hay que añadir elementos
         {
             fprintf(stdout, "number of elements added to inital stack: %d\n", (NUM_THREADS - my_stack_len(pila)));
@@ -44,10 +39,11 @@ int main(int argc, char *argv[])
         fprintf(stdout, "stack content for treatment:\n");
         for (int i = my_stack_len(pila); i < NUM_THREADS; i++) // si la pila tiene menos de NUM_THREADS elementos o ninguno
         {
-            if (!(data = malloc(sizeof(data)))) // reserva espacio para el entero
+            data = malloc(sizeof(data)); // reserva espacio para el entero
+            if (data == NULL) // si ha ocurrido un error para el proceso y lo imprime
             {
                 fprintf(stderr, ROJO "Error reservando memoria con malloc()" RESET);
-                return -1; // si ha ocurrido un error para el proceso y lo imprime
+                return -1; 
             }
             *data = 0;                         // se inicializa a 0
             if (my_stack_push(pila, data) < 0) // se agregan los restantes individualmente
@@ -58,6 +54,12 @@ int main(int argc, char *argv[])
         }
         my_stack_visualize(pila);                                      // se visualizan los elementos
         fprintf(stdout, "new stack length: %d\n", my_stack_len(pila)); // se imprime la longitud que será NUM_THREADS
+    }
+    else // en caso de que existe y el contenido sea suficiente solamente se imprimen sus datos y su longitud
+    {
+        fprintf(stdout, "original stack content:\n");
+        my_stack_visualize(pila);
+        fprintf(stdout, "original stack length: %d\n", my_stack_len(pila));
     }
 
     pthread_t hilos[NUM_THREADS]; // habrán NUM_THREADS de cantidad de hilos
