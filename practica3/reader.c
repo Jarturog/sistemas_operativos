@@ -20,20 +20,20 @@ int main(int argc, char *argv[])
     for (int i = 0; i < NUM_THREADS; i++)
     {
         // Se compara data con el mayor y menor números hasta el momento
-        if (data > max)
+        if (*data > max)
         {
-            max = data;
+            max = *data;
         }
-        if (data < min)
+        if (*data < min)
         {
-            min = data;
+            min = *data;
         }
 
         // Se suma al total
         sum += *data;
 
         // Se imprime el valor y se pasa al siguiente nodo
-        fprintf("%d\n", data);
+        fprintf("%d\n", *data);
         nodo = nodo->next;
         data = (int *)nodo->data;
     }
