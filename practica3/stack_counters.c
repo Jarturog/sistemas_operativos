@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < NUM_THREADS; i++)
     {
-        pthread_create(&hilos[i], NULL, worker, NULL); // se crean los hilos
+        pthread_create(&hilos[i], NULL, (void *) &worker, NULL); // se crean los hilos
     }
     for (int i = 0; i < NUM_THREADS; i++)
     {

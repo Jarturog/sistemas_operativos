@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
         sum += *data;
 
         // Se imprime el valor y se pasa al siguiente nodo
-        fprintf(stdout, "%d\n", (int)*data);
+        fprintf(stdout, "%d\n", *data);
         nodo = nodo->next;
         data = (int *)nodo->data;
     }
