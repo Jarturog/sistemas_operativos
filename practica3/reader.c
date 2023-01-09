@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
     int min = INT_MAX;
     int max = INT_MIN;
     int sum = 0;
-    struct my_stack *pila;
-    if (pila = my_stack_read(argv[1])) // se carga la pila
+    struct my_stack *pila = my_stack_read(argv[1]);
+    if (pila) // se carga la pila
     {
         fprintf(stderr, ROJO "Couldn't open stack file %s\n" RESET, argv[1]);
         return -1;
