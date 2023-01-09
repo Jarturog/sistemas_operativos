@@ -8,7 +8,6 @@ struct my_stack *pila;                             // pila
 
 // Declaracion de funciones
 void *worker(void *ptr);
-void my_stack_visualize();
 
 int main(int argc, char *argv[])
 {
@@ -37,7 +36,7 @@ int main(int argc, char *argv[])
         }
         fprintf(stdout, "initial stack length: %d\n", my_stack_len(pila));
         fprintf(stdout, "initial stack content:\n");
-        my_stack_visualize();                 // se visualiza el contenido de la pila
+        my_stack_visualize(pila);                 // se visualiza el contenido de la pila
         if (my_stack_len(pila) < NUM_THREADS) // si hay que añadir elementos
         {
             fprintf(stdout, "number of elements added to inital stack: %d\n", (NUM_THREADS - my_stack_len(pila)));
@@ -72,7 +71,7 @@ int main(int argc, char *argv[])
     {
         pthread_join(hilos[i], NULL); // el hilo principal espera a que acaben el resto de hilos
     }
-    fprintf(stdout, \n"stack content after threads iterations:\n");
+    fprintf(stdout, "\nstack content after threads iterations:\n");
     my_stack_visualize(pila);
     fprintf(stdout, "stack length: %d", my_stack_len(pila));
 
