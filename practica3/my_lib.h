@@ -1,6 +1,7 @@
+// código hecho por Juan Arturo Abaurrea Calafell, Pere Antoni Prats Villalonga y Marta González Juan
 /* lib.h librería con las funciones equivalentes a las
 de <string.h> y las funciones y estructuras para el
-manejo de una pila */
+manejo de una pila además de la definición de dos colores */
 
 #include <stdio.h>     /* para printf en depurarión */
 #include <string.h>    /* para funciones de strings  */

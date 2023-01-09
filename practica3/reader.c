@@ -1,3 +1,4 @@
+// código hecho por Juan Arturo Abaurrea Calafell, Pere Antoni Prats Villalonga y Marta González Juan
 #include "my_lib.h"
 #include "limits.h"
 #define NUM_THREADS 10 // 10 hilos
