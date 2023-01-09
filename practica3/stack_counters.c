@@ -1,5 +1,5 @@
 #include <pthread.h>
-#include "my_lib.c"
+#include "my_lib.h"
 #define NUM_THREADS 10 // 10 hilos
 #define N 1000000      // 1000000 iteraciones
 

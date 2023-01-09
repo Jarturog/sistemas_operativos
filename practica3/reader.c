@@ -1,4 +1,4 @@
-#include "my_lib.c"
+#include "my_lib.h"
 #include "limits.h"
 #define NUM_THREADS 10 // 10 hilos
 
