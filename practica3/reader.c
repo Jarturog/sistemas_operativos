@@ -21,7 +21,11 @@ int main(int argc, char *argv[])
     }
     fprintf(stdout, "stack length: %d\n", my_stack_len(pila));
     my_stack_visualize(pila);
-    for (int i = 0; (i < NUM_THREADS) ; i++)
+    if( my_stack_len(pila) < NUM_THREADS)
+    {
+        fprintf(stdout, ROJO "El tamaño de la pila es de %d, lo cual es menor que la cantidad de hilos con la que se trabaja: %d.\n El programa no fue diseñado para esta situación, el funcionamiento no está garantizado.\n" RESET, my_stack_len(pila), NUM_THREADS);
+    }
+    for (int i = 0; i < NUM_THREADS; i++)
     {
         int *data = my_stack_pop(pila); // se cogen datos
         // Se compara data con el mayor y menor números hasta el momento
