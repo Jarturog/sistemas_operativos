@@ -228,7 +228,7 @@ int my_stack_visualize(struct my_stack *stack)
   struct my_stack_node *nodoAuxiliar = stack->top; // nodo auxiliar inicializado al de la cima de la pila
   while (nodoAuxiliar != NULL)                    // mientras haya contenido en la pila
   {
-    fprintf(stdout, "%d\n", (int)(*(nodoAuxiliar->data))); // imprime el contenido
+    fprintf(stdout, "%d\n", *(int *)(nodoAuxiliar->data)); // imprime el contenido
     nodoAuxiliar = nodoAuxiliar->next;                     // pasa al siguiente elemento
   }
   return 0;
