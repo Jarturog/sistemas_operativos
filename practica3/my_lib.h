@@ -10,6 +10,9 @@ manejo de una pila */
 #include <sys/types.h> /* Definiciones de tipos de datos como size_t*/
 #include <unistd.h>    /* Funciones read(), write(), close()*/
 #include <errno.h>     /* COntrol de errores (errno) */
+// colores
+#define ROJO "\x1b[31m"
+#define RESET "\x1b[0m"
 
 //structuras para gestor de pila
 struct my_stack_node {      // nodo de la pila (elemento)
@@ -30,4 +33,5 @@ int my_stack_len(struct my_stack *stack);
 int my_stack_purge(struct my_stack *stack); 
 struct my_stack *my_stack_read(char *filename);
 int my_stack_write(struct my_stack *stack, char *filename);
+void my_stack_visualize(struct my_stack *stack);
     

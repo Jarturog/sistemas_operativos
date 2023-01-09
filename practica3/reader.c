@@ -6,16 +6,21 @@ int main(int argc, char *argv[])
 {
     if (argv[1] == NULL) // si no se ha introducido el nombre de la pila
     {
-        fprintf(stderr, "No se ha especificado un nombre de fichero en los argumentos");
+        fprintf(stderr, ROJO "USAGE: ./reader <stack_file>" RESET);
         return -1;
     }
 
     int min = INT_MAX;
     int max = INT_MIN;
     int sum = 0;
-    struct my_stack *pila = my_stack_read(argv[1]); // se carga la pila
-    struct my_stack_node *nodo = pila->top;         // se coge el nodo superior como el que se va a tratar ahora
-    int *data = (int *)nodo->data;                  // se cogen sus datos
+    struct my_stack *pila;
+    if ((pila = my_stack_read(argv[1])) != 0) // se carga la pila
+    {
+        fprintf(stderr, ROJO "Couldn't open stack file %s" RESET, argv[1]);
+        return -1;
+    }
+    struct my_stack_node *nodo = pila->top; // se coge el nodo superior como el que se va a tratar ahora
+    int *data = (int *)nodo->data;          // se cogen sus datos
 
     for (int i = 0; i < NUM_THREADS; i++)
     {
@@ -37,7 +42,9 @@ int main(int argc, char *argv[])
         nodo = nodo->next;
         data = (int *)nodo->data;
     }
-    // Una vez se sale del bucle se calcula la media y se imprime por pantalla
+    fprintf(stdout, "stack length: %d", my_stack_len(pila));
+    my_stack_visualize(pila);
+    // se calcula la media y se imprime por pantalla
     fprintf(stdout, "Items: %d Min: %d Max: %d Average: %d", NUM_THREADS, min, max, sum / NUM_THREADS);
 
     return 0;

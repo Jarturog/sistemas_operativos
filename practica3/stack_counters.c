@@ -1,5 +1,5 @@
-#include <pthread.h>
-#include "my_lib.h"
+#include <pthread.h>   // hilos
+#include "my_lib.h"    // colores y stack
 #define NUM_THREADS 10 // 10 hilos
 #define N 1000000      // 1000000 iteraciones
 
@@ -8,66 +8,101 @@ struct my_stack *pila;                             // pila
 
 // Declaracion de funciones
 void *worker(void *ptr);
+void my_stack_visualize();
 
 int main(int argc, char *argv[])
 {
-    int *data; // los datos a introducir en la pila
-
-    if (argv[1] != NULL) // verifica si la pila existe
+    if (argv[1] == NULL) // verifica si la pila existe
     {
-        pila = my_stack_read(argv[1]); // asigna la pila cuyo nombre del fichero se ha pasado por consola
+        fprintf(stderr, ROJO "USAGE: ./stack_counters <stack_file>" RESET);
+        return -1;
     }
-    else // en caso contrario
+    fprintf(stdout, "Threads: %d, Iterations: %d\n", NUM_THREADS, N);
+    if (((pila = my_stack_read(argv[1])) == 0) || (my_stack_len(pila) < NUM_THREADS)) // asigna la pila cuyo nombre del fichero se ha pasado por consola
     {
-        fprintf(stderr, "No se ha especificado un nombre de fichero: int argc, char *argv[]");
-        pila = my_stack_init(sizeof(data)); // crea la pila desde cero
+        fprintf(stdout, "original stack content:"\n);
+        my_stack_visualize(pila);
+        fprintf(stdout, "original stack length: %d"\n, my_stack_len(pila));
     }
-
-    for (int i = my_stack_len(pila); i < NUM_THREADS; i++) // si la pila tiene menos de NUM_THREADS elementos o ninguno
+    else // si la pila es menor que NUM_THREADS o si ha habido error (no existe)
     {
-        if (!(data = malloc(sizeof(data)))) // reserva espacio para el entero
+        int *data;        // los datos a introducir en la pila
+        if (pila == NULL) // si no existe crea una
         {
-            fprintf(stderr, "Error reservando memoria con malloc()");
-            return -1; // si ha ocurrido un error para el proceso y lo imprime
+            pila = my_stack_init(sizeof(data)); // nueva pila
         }
-        *data = 0;
-        if (my_stack_push(pila, data) < 0) // se agregan los restantes individualmente
+        if (my_stack_len(pila) == 0) // si la longitud es 0 (nueva pila o existía pero vacía)
         {
-            fprintf(stderr, "Error metiendo el elemento en la pila");
-            return -1; // si ha ocurrido un error para el proceso y lo imprime
+            fprintf(stdout, "stack->size: %d"\n, pila->size); // imprime el tamaño que ocupa cada campo de datos
         }
+        fprintf(stdout, "initial stack length: %d"\n, my_stack_len(pila));
+        fprintf(stdout, "initial stack content:"\n);
+        my_stack_visualize();                 // se visualiza el contenido de la pila
+        if (my_stack_len(pila) < NUM_THREADS) // si hay que añadir elementos
+        {
+            fprintf(stdout, "number of elements added to inital stack: %d"\n, (NUM_THREADS - my_stack_len(pila)));
+        }
+        fprintf(stdout, "stack content for treatment:"\n);
+        for (int i = my_stack_len(pila); i < NUM_THREADS; i++) // si la pila tiene menos de NUM_THREADS elementos o ninguno
+        {
+            if (!(data = malloc(sizeof(data)))) // reserva espacio para el entero
+            {
+                fprintf(stderr, ROJO "Error reservando memoria con malloc()" RESET);
+                return -1; // si ha ocurrido un error para el proceso y lo imprime
+            }
+            *data = 0;                         // se inicializa a 0
+            if (my_stack_push(pila, data) < 0) // se agregan los restantes individualmente
+            {
+                fprintf(stderr, ROJO "Error metiendo el elemento en la pila" RESET);
+                return -1; // si ha ocurrido un error para el proceso y lo imprime
+            }
+        }
+        my_stack_visualize(pila);                                      // se visualizan los elementos
+        fprintf(stdout, "new stack length: %d"\n, my_stack_len(pila)); // se imprime la longitud que será NUM_THREADS
     }
 
     pthread_t hilos[NUM_THREADS]; // habrán NUM_THREADS de cantidad de hilos
 
     for (int i = 0; i < NUM_THREADS; i++)
     {
-        pthread_create(&hilos[i], NULL, (void *) &worker, NULL); // se crean los hilos
+        pthread_create(&hilos[i], NULL, worker, NULL); // se crean los hilos
+        fprintf(stdout, "%d) Thread %ld created\n", i, threads[i]);
     }
     for (int i = 0; i < NUM_THREADS; i++)
     {
         pthread_join(hilos[i], NULL); // el hilo principal espera a que acaben el resto de hilos
     }
+    fprintf(stdout, "\nstack content after threads iterations:\n");
+    my_stack_visualize(pila);
+    fprintf(stdout, "stack length: %d", my_stack_len(pila));
 
     if (my_stack_write(pila, argv[1]) < 0) // escribe la pila en el fichero de nombre argv[1]
     {
-        fprintf(stderr, "Error escribiendo la pila en %s", argv[1]);
+        fprintf(stderr, ROJO "Error escribiendo la pila en %s" RESET, argv[1]);
         return -1; // si ha ocurrido un error para el proceso y lo imprime
     }
-    free(data);           // libera espacio reservado por data
-    my_stack_purge(pila); // libera el espacio reservado por la pila
-    pthread_exit(NULL);   // fin de la ejecución
+    fprintf(stdout, "Written elements from stack to file: %d\n", my_stack_len(pila)); // libera el espacio reservado por la pila
+    fprintf(stdout, "Released bytes: %d\n", my_stack_purge(pila));                    // libera el espacio reservado por la pila
+    fprintf(stdout, "Bye from main\n");
+    pthread_exit(NULL); // fin de la ejecución
 }
 
+/**
+ * Suma N veces al top en el momento de la pila protegiendo el acceso a ella mediante un semáforo mutex
+ */
 void *worker(void *ptr) // suma 1 al elemento de la pila
 {
     for (int i = 0; i < N; i++)
     {
         pthread_mutex_lock(&mutex);            // se bloquea la entrada a otros hilos en la siguiente sección crítica
         int *data = (int *)my_stack_pop(pila); // extrae un elemento de la pila
-        (*data)++;                             // incrementa el valor
-        my_stack_push(pila, data);             // se almacena de nuevo en la pila
-        pthread_mutex_unlock(&mutex);          // se desbloquea la sección crítica para que otro hilo o el mismo haga la operación
+        pthread_mutex_unlock(&mutex);
+
+        (*data)++; // incrementa el valor
+
+        pthread_mutex_lock(&mutex);
+        my_stack_push(pila, data);    // se almacena de nuevo en la pila
+        pthread_mutex_unlock(&mutex); // se desbloquea la segunda sección crítica
     }
     pthread_exit(NULL); // fin del hilo
 }
