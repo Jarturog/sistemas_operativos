@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 {
     if (argv[1] == NULL) // si no se ha introducido el nombre de la pila
     {
-        fprintf(stderr, ROJO "USAGE: ./reader <stack_file>" RESET);
+        fprintf(stderr, ROJO "USAGE: ./reader <stack_file>\n" RESET);
         return -1;
     }
 
@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     struct my_stack *pila;
     if ((pila = my_stack_read(argv[1])) != 0) // se carga la pila
     {
-        fprintf(stderr, ROJO "Couldn't open stack file %s" RESET, argv[1]);
+        fprintf(stderr, ROJO "Couldn't open stack file %s\n" RESET, argv[1]);
         return -1;
     }
     struct my_stack_node *nodo = pila->top; // se coge el nodo superior como el que se va a tratar ahora

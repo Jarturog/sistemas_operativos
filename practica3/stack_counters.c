@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 {
     if (argv[1] == NULL) // verifica si la pila existe
     {
-        fprintf(stderr, ROJO "USAGE: ./stack_counters <stack_file>" RESET);
+        fprintf(stderr, ROJO "USAGE: ./stack_counters <stack_file>\n" RESET);
         return -1;
     }
     fprintf(stdout, "Threads: %d, Iterations: %d\n", NUM_THREADS, N);
