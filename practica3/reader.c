@@ -1,49 +1,44 @@
 #include "my_lib.c"
 #include "limits.h"
-#define NUM_THREADS 10
-struct my_stack *s;
-struct my_stack_node *n;
+#define NUM_THREADS 10 // 10 hilos
 
-int min = INT_MAX;
-int max = 0;
-int sum = 0;
-int average;
-int data;
-
-int main(int argc, char *argv[]){
-    if (argv[1] != NULL){
-        //Se crea la pila
-        s = (struct my_stack *)argv[1];
-        n = s->top;
-        data = (int)n->data;
-        for(int i = 0; i < NUM_THREADS; i++){
-            //Se compara data con el mayor y menor numeros hasta el momento
-            if(data > max){
-                max = data;
-            }
-            if(data < min)
-            {
-                min = data;
-            }
-
-            //Se suma al total
-            sum += data;
-
-            //Se imprime el valor y se pasa al siguiente nodo
-            printf("%d\n", data);
-            n = n->next;
-            data = (int)n->data;
-        }
-        //Una vez se sale del bucle se calcula la media y se imprime por pantalla
-        average = sum / NUM_THREADS;
-        printf("Items: %d Min: %d Max: %d Average: %d", NUM_THREADS, min, max, average);
-    }
-    else
+int main(int argc, char *argv[])
+{
+    if (argv[1] == NULL) // si no se ha introducido el nombre de la pila
     {
-        char mensaje[12000];
-        sprintf(mensaje, "No se ha especificado un nombre de fichero: int argc, char *argv[]");
-        write(2, mensaje, strlen(mensaje)); // 2 es el flujo stderr
+        fprintf(stderr, "No se ha especificado un nombre de fichero en los argumentos");
+        return -1;
     }
+
+    int min = INT_MAX;
+    int max = INT_MIN;
+    int sum = 0;
+    struct my_stack *pila = my_stack_read(argv[1]); // se carga la pila
+    struct my_stack_node *nodo = pila->top;         // se coge el nodo superior como el que se va a tratar ahora
+    int *data = (int *)nodo->data;                  // se cogen sus datos
+
+    for (int i = 0; i < NUM_THREADS; i++)
+    {
+        // Se compara data con el mayor y menor números hasta el momento
+        if (data > max)
+        {
+            max = data;
+        }
+        if (data < min)
+        {
+            min = data;
+        }
+
+        // Se suma al total
+        sum += *data;
+
+        // Se imprime el valor y se pasa al siguiente nodo
+        fprintf("%d\n", data);
+        nodo = nodo->next;
+        data = (int *)nodo->data;
+    }
+    // Una vez se sale del bucle se calcula la media y se imprime por pantalla
+    fprintf("Items: %d Min: %d Max: %d Average: %d", NUM_THREADS, min, max, sum / NUM_THREADS);
 
     return 0;
 }
