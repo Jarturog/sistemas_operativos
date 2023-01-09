@@ -223,7 +223,7 @@ int my_stack_write(struct my_stack *stack, char *filename)
 /**
  * Imprime el contenido de la pila mediante %d (para pilas de números) desde el top a stdout
  */
-void my_stack_visualize(struct my_stack *stack)
+int my_stack_visualize(struct my_stack *stack)
 {
   struct my_stack_node *nodoAuxiliar = stack->top; // nodo auxiliar inicializado al de la cima de la pila
   while (nodoAuxiliar != NULL)                    // mientras haya contenido en la pila
@@ -231,4 +231,5 @@ void my_stack_visualize(struct my_stack *stack)
     fprintf(stdout, "%d\n", (int)(*(nodoAuxiliar->data))); // imprime el contenido
     nodoAuxiliar = nodoAuxiliar->next;                     // pasa al siguiente elemento
   }
+  return 0;
 };
