@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         fprintf(stdout, "initial stack length: %d\n", my_stack_len(pila));
         fprintf(stdout, "initial stack content:\n");
         my_stack_visualize(pila);             // se visualiza el contenido de la pila
-        if (my_stack_len(pila) < NUM_THREADS) // si hay que añadir elementos
+        if ((my_stack_len(pila) < NUM_THREADS) && (my_stack_len(pila) > 0)) // si hay que añadir elementos
         {
             fprintf(stdout, "number of elements added to inital stack: %d\n", (NUM_THREADS - my_stack_len(pila)));
         }
@@ -53,13 +53,13 @@ int main(int argc, char *argv[])
             }
         }
         my_stack_visualize(pila);                                      // se visualizan los elementos
-        fprintf(stdout, "new stack length: %d\n", my_stack_len(pila)); // se imprime la longitud que será NUM_THREADS
+        fprintf(stdout, "new stack length: %d\n\n", my_stack_len(pila)); // se imprime la longitud que será NUM_THREADS
     }
     else // en caso de que existe y el contenido sea suficiente solamente se imprimen sus datos y su longitud
     {
         fprintf(stdout, "original stack content:\n");
         my_stack_visualize(pila);
-        fprintf(stdout, "original stack length: %d\n", my_stack_len(pila));
+        fprintf(stdout, "original stack length: %d\n\n", my_stack_len(pila));
     }
 
     pthread_t hilos[NUM_THREADS]; // habrán NUM_THREADS de cantidad de hilos
@@ -75,14 +75,14 @@ int main(int argc, char *argv[])
     }
     fprintf(stdout, "\nstack content after threads iterations:\n");
     my_stack_visualize(pila);
-    fprintf(stdout, "stack length: %d", my_stack_len(pila));
+    fprintf(stdout, "stack length: %d\n", my_stack_len(pila));
 
     if (my_stack_write(pila, argv[1]) < 0) // escribe la pila en el fichero de nombre argv[1]
     {
         fprintf(stderr, ROJO "Error escribiendo la pila en %s" RESET, argv[1]);
         return -1; // si ha ocurrido un error para el proceso y lo imprime
     }
-    fprintf(stdout, "Written elements from stack to file: %d\n", my_stack_len(pila)); // libera el espacio reservado por la pila
+    fprintf(stdout, "\nWritten elements from stack to file: %d\n", my_stack_len(pila)); // libera el espacio reservado por la pila
     fprintf(stdout, "Released bytes: %d\n", my_stack_purge(pila));                    // libera el espacio reservado por la pila
     fprintf(stdout, "Bye from main\n");
     pthread_exit(NULL); // fin de la ejecución

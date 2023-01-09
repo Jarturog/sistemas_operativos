@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     struct my_stack_node *nodo = pila->top; // se coge el nodo superior como el que se va a tratar ahora
     int *data = (int *)nodo->data;          // se cogen sus datos
 
-    for (int i = 0; i < NUM_THREADS; i++)
+    for (int i = 0; (i < NUM_THREADS) && (nodo != NULL); i++)
     {
         // Se compara data con el mayor y menor números hasta el momento
         if (*data > max)
@@ -33,13 +33,8 @@ int main(int argc, char *argv[])
         {
             min = *data;
         }
-
-        // Se suma al total
-        sum += *data;
-
-        // Se imprime el valor y se pasa al siguiente nodo
-        fprintf(stdout, "%d\n", *data);
-        nodo = nodo->next;
+        sum += *data; // Se suma al total
+        nodo = nodo->next; // se pasa al siguiente nodo
         data = (int *)nodo->data;
     }
     fprintf(stdout, "stack length: %d", my_stack_len(pila));
