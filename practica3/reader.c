@@ -19,11 +19,9 @@ int main(int argc, char *argv[])
         fprintf(stderr, ROJO "Couldn't open stack file %s\n" RESET, argv[1]);
         return -1;
     }
-    struct my_stack_node *nodo = pila->top; // se coge el nodo superior como el que se va a tratar ahora
-    int *data = (int *)nodo->data;          // se cogen sus datos
-
-    for (int i = 0; (i < NUM_THREADS) && (nodo->data != NULL); i++)
+    for (int i = 0; (i < NUM_THREADS) ; i++)
     {
+        int *data = my_stack_pop(pila); // se cogen datos
         // Se compara data con el mayor y menor números hasta el momento
         if (*data > max)
         {
@@ -34,13 +32,11 @@ int main(int argc, char *argv[])
             min = *data;
         }
         sum += *data; // Se suma al total
-        nodo = nodo->next; // se pasa al siguiente nodo
-        data = (int *)nodo->data;
     }
     fprintf(stdout, "stack length: %d\n", my_stack_len(pila));
     my_stack_visualize(pila);
     // se calcula la media y se imprime por pantalla
     fprintf(stdout, "\nItems: %d Min: %d Max: %d Average: %d\n", NUM_THREADS, min, max, sum / NUM_THREADS);
-
+    my_stack_purge(pila);
     return 0;
 }
