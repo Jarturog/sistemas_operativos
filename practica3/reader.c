@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     struct my_stack_node *nodo = pila->top; // se coge el nodo superior como el que se va a tratar ahora
     int *data = (int *)nodo->data;          // se cogen sus datos
 
-    for (int i = 0; (i < NUM_THREADS) && (nodo != NULL); i++)
+    for (int i = 0; (i < NUM_THREADS) && (nodo->data != NULL); i++)
     {
         // Se compara data con el mayor y menor números hasta el momento
         if (*data > max)
@@ -37,10 +37,10 @@ int main(int argc, char *argv[])
         nodo = nodo->next; // se pasa al siguiente nodo
         data = (int *)nodo->data;
     }
-    fprintf(stdout, "stack length: %d", my_stack_len(pila));
+    fprintf(stdout, "stack length: %d\n", my_stack_len(pila));
     my_stack_visualize(pila);
     // se calcula la media y se imprime por pantalla
-    fprintf(stdout, "Items: %d Min: %d Max: %d Average: %d", NUM_THREADS, min, max, sum / NUM_THREADS);
+    fprintf(stdout, "\nItems: %d Min: %d Max: %d Average: %d\n", NUM_THREADS, min, max, sum / NUM_THREADS);
 
     return 0;
 }
