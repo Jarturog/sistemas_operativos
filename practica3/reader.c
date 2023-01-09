@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, ROJO "Couldn't open stack file %s\n" RESET, argv[1]);
         return -1;
     }
+    fprintf(stdout, "stack length: %d\n", my_stack_len(pila));
+    my_stack_visualize(pila);
     for (int i = 0; (i < NUM_THREADS) ; i++)
     {
         int *data = my_stack_pop(pila); // se cogen datos
@@ -33,8 +35,6 @@ int main(int argc, char *argv[])
         }
         sum += *data; // Se suma al total
     }
-    fprintf(stdout, "stack length: %d\n", my_stack_len(pila));
-    my_stack_visualize(pila);
     // se calcula la media y se imprime por pantalla
     fprintf(stdout, "\nItems: %d Min: %d Max: %d Average: %d\n", NUM_THREADS, min, max, sum / NUM_THREADS);
     my_stack_purge(pila);

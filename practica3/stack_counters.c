@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < NUM_THREADS; i++)
     {
         pthread_create(&hilos[i], NULL, worker, NULL); // se crean los hilos
-        fprintf(stdout, "%d) Thread %ld created\n", i, hilos[i]);
+        fprintf(stdout, "%d) Thread %lu created\n", i, hilos[i]);
     }
     for (int i = 0; i < NUM_THREADS; i++)
     {
